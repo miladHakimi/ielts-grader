@@ -25,7 +25,6 @@ def send_welcome(message):
         return
     bot.reply_to(message, "Please wait while we are processing your query.")
     chat_gpt_request = "Suppose you're an IELTS writing reviewer. Please grade the following essay that resides between {} and {} tokens. Categorize the result into grammar, spelling, and technical issues. In case of an issue, point out specifically what it is and how to solve it. At the end, give the writing a grade from 0 to 30 and justify the mark. Start the review by saying: Here are my comments. Essay:{}, {}, {}\n".format(START_TOKEN, END_TOKEN, START_TOKEN, m, END_TOKEN)
-    print(chat_gpt_request)
     response = gpt_api.prompt(chat_gpt_request)
     bot.reply_to(message, response.choices[0].text)
 
@@ -38,7 +37,6 @@ def send_welcome(message):
         return
     bot.reply_to(message, "Please wait while we are processing your query.")
     chat_gpt_request = "Between the tokens {} and {}, there is a TOEFL essay. Find its errors and rewrite it with those errors fixed. Try using more sophisticated collocations. Start the answer by saying: \"Here is my answer:\". At the end, in separate lines, state what has been changed by saying: \"Here are the changes:\". {} {} {}\n".format(START_TOKEN, END_TOKEN, START_TOKEN, m, END_TOKEN)
-    print(chat_gpt_request)
     response = gpt_api.prompt(chat_gpt_request)
     bot.reply_to(message, response.choices[0].text)
 
