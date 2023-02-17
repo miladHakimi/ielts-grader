@@ -8,15 +8,18 @@ import chatgpt
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 START_TOKEN = os.environ.get('START_TOKEN')
 END_TOKEN = os.environ.get('END_TOKEN')
+PRIVATE_GROUP_ID = os.environ.get('PRIVATE_GROUP_ID')
 
 bot = telebot.TeleBot(BOT_TOKEN)
 gpt_api = chatgpt.ChatGPT()
 
+# user id to username
+user_lists = {}
 
 @bot.message_handler(commands=['start', 'hello'])
 def send_welcome(message):
     bot.reply_to(message,
-                 "Hi. The defualt response is Persian to English translation.")
+                 "Hi. The defualt response is Persian to English translation. Send /help to see the list of commands.")
 
 
 @bot.message_handler(commands=['grade'])
@@ -47,7 +50,7 @@ def send_welcome(message):
         )
         return
     bot.reply_to(message, "Please wait while we are processing your query.")
-    chat_gpt_request = "Between the tokens {} and {}, there is a TOEFL essay. Find its errors and rewrite it with those errors fixed. Try using more sophisticated collocations. Start the answer by saying: \"Here is my answer:\". At the end, in separate lines, state what has been changed by saying: \"Here are the changes:\". {} {} {}\n".format(
+    chat_gpt_request = "Between the tokens {} and {}, there is a TOEFL essay. Find its errors and rewrite it with those errors fixed. Try using more sophisticated collocations. Start the answer by saying: \"Here is my answer:\". At the end, in bullet points, state what has been changed by saying: \"Here are the changes:\". {} {} {}\n".format(
         START_TOKEN, END_TOKEN, START_TOKEN, m, END_TOKEN)
     response = gpt_api.prompt(chat_gpt_request)
     bot.reply_to(message, response.choices[0].text)
@@ -56,17 +59,29 @@ def send_welcome(message):
 @bot.message_handler(commands=['p2e'])
 def translate_persian_to_english(message):
     m = message.text.split("/p2e", 1)[1]
-    chat_gpt_request = "Translate the following text from Persian to English that resides between {} and {} tokens: {} \n {} \n. ".format(
+    chat_gpt_request = "Translate the following text from Persian to English that resides between {} and {} tokens: {}\n{}\n.{}  ".format(
         START_TOKEN, END_TOKEN, START_TOKEN, m, END_TOKEN)
     response = gpt_api.prompt(chat_gpt_request)
     bot.reply_to(message, response.choices[0].text)
 
 
+@bot.message_handler(commands=['help'])
+def send_commands_list(message):
+    m = message.text.split("/help", 1)[1]
+    list_of_functions = \
+        "/grade: Grade an essay.\n" + \
+        "/rewrite: Rewrite an essay."
+    bot.reply_to(message, list_of_functions)
+
+
 @bot.message_handler(func=lambda msg: True)
 def echo_all(message):
-    message.text = '/p2e ' + message.text
-    response = translate_persian_to_english(message)
-    bot.reply_to(message, response.choices[0].text)
-
+    if (message.chat.type == 'private'):
+        message.text = '/p2e ' + message.text
+        translate_persian_to_english(message)        
+        user_id = message.from_user.id
+        if user_id not in user_lists:
+            bot.send_message(chat_id=PRIVATE_GROUP_ID, text="New User: " + str(message.from_user.id) + ",@" + str(message.from_user.username))
+            user_lists[user_id] = message.from_user.username or "Unknown"
 
 bot.infinity_polling()
