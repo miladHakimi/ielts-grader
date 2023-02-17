@@ -3,14 +3,14 @@ import re
 
 import telebot
 
-from chatgpt import ChatGPT
+import chatgpt
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 START_TOKEN = os.environ.get('START_TOKEN')
 END_TOKEN = os.environ.get('END_TOKEN')
 
 bot = telebot.TeleBot(BOT_TOKEN)
-gpt_api = ChatGPT()
+gpt_api = chatgpt.ChatGPT()
 
 
 @bot.message_handler(commands=['start', 'hello'])
