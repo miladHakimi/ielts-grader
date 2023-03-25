@@ -83,16 +83,16 @@ def translate_persian_to_english(message):
 @bot.message_handler(commands=['help'])
 def send_commands_list(message):
     list_of_functions = \
-        "/grade: Grade an essay.\n" + \
-        "/rewrite: Rewrite an essay."
+        "Here is the list of valid commands:\n" \
+        "/grade: Grade an essay.\n" \
+        "/rewrite: Rewrite an essay.\n" \
+        "Copy and paste the essay after the command, then send it.\n"
     bot.reply_to(message, list_of_functions)
 
 
 @bot.message_handler(func=lambda msg: True)
 def echo_all(message):
-    if (message.chat.type == 'private'):
-        message.text = '/p2e ' + message.text
-        translate_persian_to_english(message)
+    return send_commands_list(message)
 
 
 bot.infinity_polling()
