@@ -2,6 +2,7 @@ import os
 import re
 
 import telebot
+import sqlite3
 
 import chatgpt
 
@@ -9,9 +10,11 @@ BOT_TOKEN = os.environ.get('BOT_TOKEN')
 START_TOKEN = os.environ.get('START_TOKEN')
 END_TOKEN = os.environ.get('END_TOKEN')
 PRIVATE_GROUP_ID = os.environ.get('PRIVATE_GROUP_ID')
+DB_NAME = os.environ.get('DB_NAME')
 
 bot = telebot.TeleBot(BOT_TOKEN)
 gpt_api = chatgpt.ChatGPT()
+
 
 # user id to username
 user_lists = {}
@@ -20,10 +23,22 @@ user_lists = {}
 def send_welcome(message):
     bot.reply_to(message,
                  "Hi. The defualt response is Persian to English translation. Send /help to see the list of commands.")
+    user_id = message.from_user.id
+    username = message.from_user.username
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+    result = c.fetchone()
 
+    if result is None:
+        bot.send_message(chat_id=PRIVATE_GROUP_ID, text="New User: " + str(message.from_user.id) + ",@" + str(message.from_user.username))
+        c.execute("INSERT INTO users (id, username) VALUES (?, ?)", (user_id, username))
+        conn.commit()
+
+    conn.close()
 
 @bot.message_handler(commands=['grade'])
-def send_welcome(message):
+def grade(message):
     m = message.text.split("/grade", 1)[1]
     word_count = len(re.findall(r'\w+', m))
     if (word_count < 100 or word_count > 500):
@@ -40,7 +55,7 @@ def send_welcome(message):
 
 
 @bot.message_handler(commands=['rewrite'])
-def send_welcome(message):
+def rewrite(message):
     m = message.text.split("/rewrite", 1)[1]
     word_count = len(re.findall(r'\w+', m))
     if (word_count < 100 or word_count > 500):
@@ -67,7 +82,6 @@ def translate_persian_to_english(message):
 
 @bot.message_handler(commands=['help'])
 def send_commands_list(message):
-    m = message.text.split("/help", 1)[1]
     list_of_functions = \
         "/grade: Grade an essay.\n" + \
         "/rewrite: Rewrite an essay."
@@ -78,10 +92,7 @@ def send_commands_list(message):
 def echo_all(message):
     if (message.chat.type == 'private'):
         message.text = '/p2e ' + message.text
-        translate_persian_to_english(message)        
-        user_id = message.from_user.id
-        if user_id not in user_lists:
-            bot.send_message(chat_id=PRIVATE_GROUP_ID, text="New User: " + str(message.from_user.id) + ",@" + str(message.from_user.username))
-            user_lists[user_id] = message.from_user.username or "Unknown"
+        translate_persian_to_english(message)
+
 
 bot.infinity_polling()
