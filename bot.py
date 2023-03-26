@@ -92,7 +92,8 @@ def send_commands_list(message):
 
 @bot.message_handler(func=lambda msg: True)
 def echo_all(message):
-    return send_commands_list(message)
+    if (message.chat.type == 'private'):
+        return send_commands_list(message)
 
 
 bot.infinity_polling()
