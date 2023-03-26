@@ -19,10 +19,10 @@ gpt_api = chatgpt.ChatGPT()
 # user id to username
 user_lists = {}
 
-@bot.message_handler(commands=['start', 'hello'])
+@bot.message_handler(commands=['start', 'hello'], func=lambda msg: msg.chat.type == 'private')
 def send_welcome(message):
     bot.reply_to(message,
-                 "Hi. The defualt response is Persian to English translation. Send /help to see the list of commands.")
+                 "Hi. Send /help to see the list of commands.")
     user_id = message.from_user.id
     username = message.from_user.username
     conn = sqlite3.connect(DB_NAME)
@@ -37,7 +37,7 @@ def send_welcome(message):
 
     conn.close()
 
-@bot.message_handler(commands=['grade'])
+@bot.message_handler(commands=['grade'], func=lambda msg: msg.chat.type == 'private')
 def grade(message):
     m = message.text.split("/grade", 1)[1]
     word_count = len(re.findall(r'\w+', m))
@@ -54,7 +54,7 @@ def grade(message):
     bot.reply_to(message, response.choices[0].text)
 
 
-@bot.message_handler(commands=['rewrite'])
+@bot.message_handler(commands=['rewrite'], func=lambda msg: msg.chat.type == 'private')
 def rewrite(message):
     m = message.text.split("/rewrite", 1)[1]
     word_count = len(re.findall(r'\w+', m))
@@ -71,16 +71,7 @@ def rewrite(message):
     bot.reply_to(message, response.choices[0].text)
 
 
-@bot.message_handler(commands=['p2e'])
-def translate_persian_to_english(message):
-    m = message.text.split("/p2e", 1)[1]
-    chat_gpt_request = "Translate the following text from Persian to English that resides between {} and {} tokens: {}\n{}\n.{}  ".format(
-        START_TOKEN, END_TOKEN, START_TOKEN, m, END_TOKEN)
-    response = gpt_api.prompt(chat_gpt_request)
-    bot.reply_to(message, response.choices[0].text)
-
-
-@bot.message_handler(commands=['help'])
+@bot.message_handler(commands=['help'], func=lambda msg: msg.chat.type == 'private')
 def send_commands_list(message):
     list_of_functions = \
         "Here is the list of valid commands:\n" \
@@ -90,7 +81,7 @@ def send_commands_list(message):
     bot.reply_to(message, list_of_functions)
 
 
-@bot.message_handler(func=lambda msg: True)
+@bot.message_handler(func=lambda msg: msg.chat.type == 'private')
 def echo_all(message):
     if (message.chat.type == 'private'):
         return send_commands_list(message)
