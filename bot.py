@@ -15,16 +15,20 @@ DB_NAME = os.environ.get('DB_NAME')
 bot = telebot.TeleBot(BOT_TOKEN)
 gpt_api = chatgpt.ChatGPT()
 
-
 # user id to username
 user_lists = {}
 
-@bot.message_handler(commands=['start', 'hello'], chat_types=['private'], func=get_or_create_user)
+
+@bot.message_handler(commands=['start', 'hello'],
+                     chat_types=['private'],
+                     func=get_or_create_user)
 def send_welcome(message):
-    bot.reply_to(message,
-                 "Hi. Send /help to see the list of commands.")
-    
-@bot.message_handler(commands=['grade'], chat_types=['private'], func=get_or_create_user)
+    bot.reply_to(message, "Hi. Send /help to see the list of commands.")
+
+
+@bot.message_handler(commands=['grade'],
+                     chat_types=['private'],
+                     func=get_or_create_user)
 def grade(message):
     m = message.text.split("/grade", 1)[1]
     word_count = len(re.findall(r'\w+', m))
@@ -41,7 +45,10 @@ def grade(message):
     bot.reply_to(message, response.choices[0].text)
     increment_requests(message)
 
-@bot.message_handler(commands=['rewrite'], chat_types=['private'], func=get_or_create_user)
+
+@bot.message_handler(commands=['rewrite'],
+                     chat_types=['private'],
+                     func=get_or_create_user)
 def rewrite(message):
     m = message.text.split("/rewrite", 1)[1]
     word_count = len(re.findall(r'\w+', m))
@@ -59,7 +66,9 @@ def rewrite(message):
     increment_requests(message)
 
 
-@bot.message_handler(commands=['help'], chat_types=['private'], func=get_or_create_user)
+@bot.message_handler(commands=['help'],
+                     chat_types=['private'],
+                     func=get_or_create_user)
 def send_commands_list(message):
     list_of_functions = \
         "Here is the list of valid commands:\n" \
