@@ -14,5 +14,6 @@ class CreationTests(unittest.TestCase):
         except Exception as e:
             self.fail("Exception raised: {}".format(e))
 
+
 if __name__ == '__main__':
     unittest.main()

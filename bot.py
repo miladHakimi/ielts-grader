@@ -4,13 +4,15 @@ import re
 import telebot
 import chatgpt
 
-from user import get_or_create_user, increment_requests
+from user import get_or_create_user, increment_requests, check_expired_account, get_num_requests, check_can_request
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 START_TOKEN = os.environ.get('START_TOKEN')
 END_TOKEN = os.environ.get('END_TOKEN')
 PRIVATE_GROUP_ID = os.environ.get('PRIVATE_GROUP_ID')
 DB_NAME = os.environ.get('DB_NAME')
+
+MAX_REQUESTS = 5
 
 bot = telebot.TeleBot(BOT_TOKEN)
 gpt_api = chatgpt.ChatGPT()
@@ -23,12 +25,14 @@ user_lists = {}
                      chat_types=['private'],
                      func=get_or_create_user)
 def send_welcome(message):
-    bot.reply_to(message, "Hi. Send /help to see the list of commands.")
+    remaining_reqs = max(0, MAX_REQUESTS - get_num_requests(message))
+    bot.reply_to(message, "Hi. Send /help to see the list of commands. Number of free requests left: {}".format(remaining_reqs))
 
 
 @bot.message_handler(commands=['grade'],
                      chat_types=['private'],
                      func=get_or_create_user)
+@check_can_request
 def grade(message):
     m = message.text.split("/grade", 1)[1]
     word_count = len(re.findall(r'\w+', m))
@@ -49,6 +53,7 @@ def grade(message):
 @bot.message_handler(commands=['rewrite'],
                      chat_types=['private'],
                      func=get_or_create_user)
+@check_can_request
 def rewrite(message):
     m = message.text.split("/rewrite", 1)[1]
     word_count = len(re.findall(r'\w+', m))
