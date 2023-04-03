@@ -4,7 +4,7 @@ import re
 import telebot
 import chatgpt
 
-from user import get_or_create_user, increment_requests, check_expired_account, get_num_requests, check_can_request
+from user import get_or_create_user, increment_requests, check_expired_account, get_num_requests, check_can_request, extend_account
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 START_TOKEN = os.environ.get('START_TOKEN')
@@ -36,10 +36,10 @@ def send_welcome(message):
 def grade(message):
     m = message.text.split("/grade", 1)[1]
     word_count = len(re.findall(r'\w+', m))
-    if (word_count < 100 or word_count > 500):
+    if (word_count < 10 or word_count > 500):
         bot.reply_to(
             message,
-            "The essay must contain between 100 and 500 words. Please try again."
+            "The essay must contain between 10 and 500 words. Please try again."
         )
         return
     bot.reply_to(message, "Please wait while we are processing your query.")
@@ -57,10 +57,10 @@ def grade(message):
 def rewrite(message):
     m = message.text.split("/rewrite", 1)[1]
     word_count = len(re.findall(r'\w+', m))
-    if (word_count < 100 or word_count > 500):
+    if (word_count < 10 or word_count > 500):
         bot.reply_to(
             message,
-            "The essay must contain between 100 and 500 words. Please try again."
+            "The essay must contain between 10 and 500 words. Please try again."
         )
         return
     bot.reply_to(message, "Please wait while we are processing your query.")
@@ -79,14 +79,26 @@ def send_commands_list(message):
         "Here is the list of valid commands:\n" \
         "/grade: Grade an essay.\n" \
         "/rewrite: Rewrite an essay.\n" \
-        "Copy and paste the essay after the command, then send it.\n"
+        "Copy and paste the essay after the command, then send it.\n" \
+        "Example: /rewrite I am a student. I am studying at the university.\n\n" \
+        "To purchase a premium account, please visit https://grammarlybot.ir."
     bot.reply_to(message, list_of_functions)
 
 
-@bot.message_handler(chat_types=['private'], func=get_or_create_user)
+def extend_user(message):
+    data = message.text.split("/extend_user", 1)[1]
+    print(data)
+    extend_account(data)
+
+
+@bot.message_handler(func=get_or_create_user)
 def echo_all(message):
+    if (message.chat.id == int(PRIVATE_GROUP_ID)):
+        if '/extend_user' in message.text:
+            extend_user(message)
     if (message.chat.type == 'private'):
         return send_commands_list(message)
+
 
 
 bot.infinity_polling()

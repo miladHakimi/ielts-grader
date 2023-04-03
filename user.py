@@ -77,5 +77,32 @@ def check_can_request(func):
         is_expired = check_expired_account(message)
         if remaining_reqs > 0 or not is_expired:
             return func(message)
-        bot.reply_to(message, "You have exceeded the maximum number of requests. Please contact @chatGPT to purchase subscription for your account.")
+        bot.reply_to(message, "You have exceeded the maximum number of requests. Please visit https://grammarlybot.ir to purchase subscription for your account.")
     return wrapper
+
+
+def extend_account(message):
+    username = message.split(",")[0].strip()
+    if '@' in username:
+        username = username.split("@")[1]
+    days = int(message.split(",")[1])
+    if not username or not days:
+        bot.reply_to(message, "Invalid command.")
+        return
+
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute('SELECT id, expiry_time FROM users WHERE username = ?', (username, ))
+    result = c.fetchone()
+    if result is not None:
+        if result[1] is None:
+            date = datetime.datetime.now()
+        else:
+            date = datetime.datetime.strptime(result[1], "%Y-%m-%d %H:%M:%S.%f")
+        new_exp_time = max(date, datetime.datetime.now()) + datetime.timedelta(days=days)
+        c.execute("UPDATE users SET expiry_time = ? WHERE username = ?", (new_exp_time, username))
+        bot.send_message(chat_id=PRIVATE_GROUP_ID, text="Account has been extended for {} day(s).".format(days))
+        conn.commit()
+    else:
+        bot.send_message(chat_id=PRIVATE_GROUP_ID, text="User not found: " + str(username))
+    conn.close()
