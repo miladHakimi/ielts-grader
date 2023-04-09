@@ -8,6 +8,7 @@ BOT_TOKEN = os.environ.get('BOT_TOKEN')
 DB_NAME = os.environ.get('DB_NAME')
 PRIVATE_GROUP_ID = os.environ.get('PRIVATE_GROUP_ID')
 MAX_REQUESTS = 5
+TRIAL_DAYS = 5
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -51,11 +52,10 @@ def check_expired_account(message):
     c.execute("SELECT * FROM users WHERE id = ? AND expiry_time > ?", (user_id, datetime.datetime.now()))
     result = c.fetchone()
     conn.close()
-
     if result:
         # User has not expired.
-        return True
-    return False
+        return False
+    return True
 
 
 def get_num_requests(message):
@@ -70,14 +70,55 @@ def get_num_requests(message):
     return 100
 
 
+def get_date(date_str):
+    try:
+        return datetime.datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S.%f")
+    except ValueError:
+        return datetime.datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+
+
+# Check if the user's start date is more than TRIAL_DAYS ago.
+def check_in_trial(user_id):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT start_date FROM users WHERE id = ?", (user_id,))
+    result = c.fetchone()
+    # If start_date is none it means the user hasn't submitted any request yet. Hence, the user is in trial period.
+    if not result[0]:
+        conn.close()
+        return True
+    start_date = get_date(result[0])
+    # If start_date is more than 5 days ago, the user is not in trial period anymore.
+    if start_date > datetime.datetime.now() - datetime.timedelta(days=TRIAL_DAYS):
+        conn.close()
+        return True
+    conn.close()
+    return False
+
+
+# If start date was not set, set the start date to now.
+def set_start_date(user_id):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT start_date FROM users WHERE id = ?", (user_id,))
+    result = c.fetchone()
+    if result[0] is None:
+        c.execute("UPDATE users SET start_date = ? WHERE id = ?", (datetime.datetime.now(), user_id))
+        conn.commit()
+    conn.close()
+
+
 # Check if the user has exceeded the maximum number of requests.        
 def check_can_request(func):
     def wrapper(message):
-        remaining_reqs = max(0, MAX_REQUESTS - get_num_requests(message))
+        in_trial = check_in_trial(message.from_user.id)
         is_expired = check_expired_account(message)
-        if remaining_reqs > 0 or not is_expired:
-            return func(message)
-        bot.reply_to(message, "You have exceeded the maximum number of requests. Please visit https://grammarlybot.ir to purchase subscription for your account.")
+        if in_trial or not is_expired:
+            func(message)
+            set_start_date(message.from_user.id)
+            return
+
+        bot.reply_to(message, "Your trial period is over. Please visit https://grammarlybot.ir to purchase subscription for your account.")
     return wrapper
 
 
@@ -98,7 +139,7 @@ def extend_account(message):
         if result[1] is None:
             date = datetime.datetime.now()
         else:
-            date = datetime.datetime.strptime(result[1], "%Y-%m-%d %H:%M:%S.%f")
+            date = get_date(result[1])
         new_exp_time = max(date, datetime.datetime.now()) + datetime.timedelta(days=days)
         c.execute("UPDATE users SET expiry_time = ? WHERE username = ?", (new_exp_time, username))
         bot.send_message(chat_id=PRIVATE_GROUP_ID, text="Account has been extended for {} day(s).".format(days))
