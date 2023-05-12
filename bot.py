@@ -4,7 +4,7 @@ import re
 import telebot
 import chatgpt
 
-from user import get_or_create_user, increment_requests, check_expired_account, get_num_requests, check_can_request, extend_account
+from user import get_or_create_user, increment_requests, check_can_request, extend_account
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 START_TOKEN = os.environ.get('START_TOKEN')
@@ -25,8 +25,7 @@ user_lists = {}
                      chat_types=['private'],
                      func=get_or_create_user)
 def send_welcome(message):
-    remaining_reqs = max(0, MAX_REQUESTS - get_num_requests(message))
-    bot.reply_to(message, "Hi. Send /help to see the list of commands. Number of free requests left: {}".format(remaining_reqs))
+    bot.reply_to(message, "Hi. Send /help to see the list of commands. For more information please visis https://grammarlybot.ir.")
 
 
 @bot.message_handler(commands=['grade'],

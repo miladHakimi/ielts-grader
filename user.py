@@ -58,18 +58,6 @@ def check_expired_account(message):
     return True
 
 
-def get_num_requests(message):
-    user_id = message.from_user.id
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute("SELECT num_requests FROM users WHERE id = ?", (user_id,))
-    result = c.fetchone()
-    if result is not None:
-        return result[0]
-    conn.close()
-    return 100
-
-
 def get_date(date_str):
     try:
         return datetime.datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S.%f")

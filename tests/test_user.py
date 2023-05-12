@@ -4,6 +4,8 @@ import sqlite3
 import unittest
 from unittest.mock import MagicMock, patch
 
+import sys
+
 
 class TestGetOrCreateUser(unittest.TestCase):
 
@@ -47,7 +49,8 @@ class TestGetOrCreateUser(unittest.TestCase):
         return sqlite3.connect("test_database.db")
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
-    def test_get_or_create_user_new_user(self):
+    @patch('user.bot.send_message')
+    def test_get_or_create_user_new_user(self, mock_bot_send_message):
         from user import get_or_create_user
 
         self.setup_db()
@@ -66,6 +69,7 @@ class TestGetOrCreateUser(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(result[0], self.message.from_user.id)
         self.assertEqual(result[1], self.message.from_user.username)
+        mock_bot_send_message.assert_called_once()
         conn.close()
         self.tear_down_db()
 
@@ -106,8 +110,6 @@ class TestGetOrCreateUser(unittest.TestCase):
         self.setup_db()
         conn = self.get_connection()
         c = conn.cursor()
-        c.execute("select * from users")
-        print(c.fetchone())
         # # Add a user to the "users" table in the database
         c.execute("INSERT INTO users (id, username) VALUES (?, ?)",
                   (self.message.from_user.id, self.message.from_user.username))
@@ -161,4 +163,36 @@ class TestGetOrCreateUser(unittest.TestCase):
         conn.commit()
         conn.close()
         self.assertEqual(check_expired_account(self.message), True)
+        self.tear_down_db()
+
+    @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
+    @patch('user.bot.send_message')
+    def test_existing_user_account_extended(self, mock_bot_send_message):
+        from user import extend_account
+        self.setup_db()
+        conn = self.get_connection()
+        c = conn.cursor()
+        # # Prepare mock database response and current date
+        expiry_date = datetime.datetime.now() + datetime.timedelta(days=10)
+        c.execute(
+            "INSERT INTO users (id, username, expiry_time) VALUES (?, ?, ?)",
+            (123,
+             self.message.from_user.username,
+             expiry_date))
+        conn.commit()
+
+        conn.close()
+        message = self.message.from_user.username + ', 7'
+        # Call the function being tested
+        extend_account(message)
+
+        conn = self.get_connection()
+        c = conn.cursor()
+        # Check the new expiry date
+        c.execute('SELECT id, expiry_time FROM users WHERE username = ?', (self.message.from_user.username, ))
+
+        result = c.fetchone()
+        self.assertIsNotNone(result)
+        time = datetime.datetime.strptime(result[1], '%Y-%m-%d %H:%M:%S.%f')
+        self.assertEqual(time, expiry_date + datetime.timedelta(days=7))
         self.tear_down_db()
