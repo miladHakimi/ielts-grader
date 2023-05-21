@@ -7,6 +7,11 @@ from src.controllers import get_or_create_user, create_tables
 from src.utility import main_menu_buttons, writing_buttons, gen_menu
 from src.writing import generate_topic, grade_writing, check_grammar, rewrite_writing, write_essay
 
+import speech_recognition as sr 
+from pydub import AudioSegment
+
+r = sr.Recognizer()
+
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 PRIVATE_GROUP_ID = os.environ.get('PRIVATE_GROUP_ID')
 DB_NAME = os.environ.get('DB_NAME')
@@ -77,6 +82,29 @@ def send_welcome(message):
         .format(BOT_NAME),
         reply_markup=gen_menu(main_menu_buttons))
 
+
+@bot.message_handler(commands=['speaking'],
+                     chat_types=['private'],
+                     func=get_or_create_user)
+@check_can_request
+def speaking(message):
+    bot.reply_to(message, "Please record your voice and send it to me.")
+    bot.register_next_step_handler(message, process_speaking_step)
+    increment_requests(message)
+
+
+def process_speaking_step(message):
+    if message.voice:
+        file_info = bot.get_file(message.voice.file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        with open('new_file.ogg', 'wb') as new_file:
+            new_file.write(downloaded_file)
+        sound = AudioSegment.from_ogg('./new_file.ogg')
+        sound.export("new_file.wav", format="wav")
+        with sound as source:
+            user_audio = r.record(source)
+        text = r.recognize_google(user_audio, language="en-US")
+        print(text)
 
 @bot.message_handler(commands=['help'],
                      chat_types=['private'],
