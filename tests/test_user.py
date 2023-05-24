@@ -4,8 +4,6 @@ import sqlite3
 import unittest
 from unittest.mock import MagicMock, patch
 
-import sys
-
 
 class TestGetOrCreateUser(unittest.TestCase):
 
@@ -49,9 +47,9 @@ class TestGetOrCreateUser(unittest.TestCase):
         return sqlite3.connect("test_database.db")
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
-    @patch('user.bot.send_message')
+    @patch('src.models.user.bot.send_message')
     def test_get_or_create_user_new_user(self, mock_bot_send_message):
-        from user import get_or_create_user
+        from src.models.user import get_or_create_user
 
         self.setup_db()
         # Call the function with the message object
@@ -75,7 +73,7 @@ class TestGetOrCreateUser(unittest.TestCase):
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
     def test_get_or_create_user_existing_user(self):
-        from user import get_or_create_user
+        from src.models.user import get_or_create_user
 
         self.setup_db()
         conn = self.get_connection()
@@ -105,7 +103,7 @@ class TestGetOrCreateUser(unittest.TestCase):
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
     def test_existing_user_requests(self):
-        from user import increment_requests
+        from src.models.user import increment_requests
 
         self.setup_db()
         conn = self.get_connection()
@@ -127,7 +125,7 @@ class TestGetOrCreateUser(unittest.TestCase):
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
     def test_not_expired(self):
-        from user import check_expired_account
+        from src.models.user import check_expired_account
 
         self.setup_db()
         conn = self.get_connection()
@@ -148,7 +146,7 @@ class TestGetOrCreateUser(unittest.TestCase):
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
     def test_expired(self):
-        from user import check_expired_account
+        from src.models.user import check_expired_account
 
         self.setup_db()
         conn = self.get_connection()
@@ -166,9 +164,9 @@ class TestGetOrCreateUser(unittest.TestCase):
         self.tear_down_db()
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
-    @patch('user.bot.send_message')
+    @patch('src.models.user.bot.send_message')
     def test_existing_user_account_extended(self, mock_bot_send_message):
-        from user import extend_account
+        from src.models.user import extend_account
         self.setup_db()
         conn = self.get_connection()
         c = conn.cursor()

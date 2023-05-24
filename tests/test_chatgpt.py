@@ -1,6 +1,7 @@
 # This file contains tests for ChatGPT Interface.
 import unittest
-import chatgpt
+from src.gpt import chatgpt
+
 
 class CreationTests(unittest.TestCase):
     """Test creation."""

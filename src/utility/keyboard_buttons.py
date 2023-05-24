@@ -2,6 +2,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 class KeyboardButton(InlineKeyboardButton):
+
     def __init__(self, name, path, description):
         super().__init__(name, callback_data=path)
         self.name = name
@@ -40,9 +41,14 @@ main_menu_buttons = [
 ]
 
 writing_buttons = [
-    KeyboardButton("Generate Topic 💭", "/writing/gen_topic", {"en": "Generates a topic for your writing essay."}),
-    KeyboardButton("Grade 💯", "/writing/grade", {"en": "Grades your writing essay from 0 - 9."}),
-    KeyboardButton("Check Grammar ✅", "/writing/check_grammar", {"en": "Checks your writing essay for grammar mistakes."}),
-    KeyboardButton("Revise 👩‍💻", "/writing/revise_writing", {"en": "Revises your writing essay."}),
-    KeyboardButton("Write Essay ✍️", "/writing/write_essay", {"en": "Writes an essay for you."}),
+    KeyboardButton("Generate Topic 💭", "/writing/gen_topic",
+                   {"en": "Generates a topic for your writing essay."}),
+    KeyboardButton("Grade 💯", "/writing/grade",
+                   {"en": "Grades your writing essay from 0 - 9."}),
+    KeyboardButton("Check Grammar ✅", "/writing/check_grammar",
+                   {"en": "Checks your writing essay for grammar mistakes."}),
+    KeyboardButton("Revise 👩‍💻", "/writing/revise_writing",
+                   {"en": "Revises your writing essay."}),
+    KeyboardButton("Write Essay ✍️", "/writing/write_essay",
+                   {"en": "Writes an essay for you."}),
 ]
