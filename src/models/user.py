@@ -9,6 +9,7 @@ DB_NAME = os.environ.get('DB_NAME')
 PRIVATE_GROUP_ID = os.environ.get('PRIVATE_GROUP_ID')
 MAX_REQUESTS = 5
 TRIAL_DAYS = 5
+BOT_ID = int(BOT_TOKEN.split(':')[0].strip())
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -37,6 +38,8 @@ def get_or_create_user(message):
 # When a user sends a chatGPT query, number of requests is incremented.
 def increment_requests(message):
     user_id = message.from_user.id
+    if user_id == BOT_ID:
+        user_id = message.chat.id
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("SELECT * FROM users WHERE id = ?", (user_id, ))

@@ -1,5 +1,7 @@
 import re
 
+from src.models.user import increment_requests
+
 
 def generate_topic(message, tele_bot, gpt_api):
     chat_gpt_request = "Suppose that you are an IELTS teacher that creates random IELTS writing essay topics. Produce a random writing topic that is formatted like a IELTS writing topic. Start the topic with 'Topic:'"
@@ -7,6 +9,7 @@ def generate_topic(message, tele_bot, gpt_api):
     if 'Topic:' in response.choices[0].text:
         response.choices[0].text = response.choices[0].text.split('Topic:')[1]
     tele_bot.reply_to(message, response.choices[0].text)
+    increment_requests(message)
 
 
 def grade_writing(message, tele_bot, gpt_api):
@@ -50,6 +53,7 @@ def grade_essay(message, tele_bot, gpt_api, topic):
                     "The min and max in the grade range must be 1 point apart.\n{}\n{}".format(topic, m)
     response = gpt_api.prompt(chat_gpt_request)
     tele_bot.reply_to(message, response.choices[0].text)
+    increment_requests(message)
 
 
 def check_grammar(message, tele_bot, gpt_api):
@@ -62,6 +66,7 @@ def extract_grammar(message, tele_bot, gpt_api):
     tele_bot.reply_to(message, "Please wait while we are processing your query.")
     response = gpt_api.prompt(chat_gpt_request)
     tele_bot.reply_to(message, response.choices[0].text)
+    increment_requests(message)
 
 
 def revise_writing(message, tele_bot, gpt_api):
@@ -74,14 +79,16 @@ def rewrite(message, tele_bot, gpt_api):
     tele_bot.reply_to(message, "Please wait while we are processing your query.")
     response = gpt_api.prompt(chat_gpt_request)
     tele_bot.reply_to(message, response.choices[0].text)
+    increment_requests(message)
 
 
 def write_essay(message, tele_bot, gpt_api):
-    def generate_essay(message, tele_bot, gpt_api):
+    def generate_essay(message):
         chat_gpt_request = "Suppose you're an advanced IELTS expert. Write an academic IELTS essay with the following topic.:\n{}".format(message.text)
         tele_bot.reply_to(message, "Please wait while we are processing your query.")
         response = gpt_api.prompt(chat_gpt_request)
         tele_bot.reply_to(message, response.choices[0].text)
+        increment_requests(message)
 
     tele_bot.reply_to(message, "Please send the topic.")
-    tele_bot.register_next_step_handler(message, generate_essay, tele_bot, gpt_api)
+    tele_bot.register_next_step_handler(message, generate_essay)
