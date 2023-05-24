@@ -25,10 +25,6 @@ gpt_api = chatgpt.ChatGPT()
 user_lists = {}
 
 
-@bot.message_handler(commands=['grade'],
-                     chat_types=['private'],
-                     func=get_or_create_user)
-@check_can_request
 def writing_handler(call):
     data = call.data.split("/writing/")
     if len(data) == 1:
@@ -39,15 +35,15 @@ def writing_handler(call):
             call.message.message_id,
             reply_markup=gen_menu(writing_buttons))
     elif data[1] == "gen_topic":
-        generate_topic(call.message)
+        generate_topic(call.message, bot, gpt_api)
     elif data[1] == "grade":
-        grade_writing(call.message)
+        grade_writing(call.message, bot, gpt_api)
     elif data[1] == "check_grammar":
-        check_grammar(call.message)
+        check_grammar(call.message, bot, gpt_api)
     elif data[1] == "revise":
-        revise_writing(call.message)
+        revise_writing(call.message, bot, gpt_api)
     elif data[1] == "write_essay":
-        write_essay(call.message)
+        write_essay(call.message, bot, gpt_api)
 
 
 @bot.callback_query_handler(func=lambda call: True)

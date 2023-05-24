@@ -114,7 +114,8 @@ def check_can_request(func):
             func(message)
             set_start_date(message.from_user.id)
             return
-
+        if type(message) is telebot.types.CallbackQuery:
+            message = message.message
         bot.reply_to(
             message,
             "Your trial period is over. Please visit https://grammarlybot.ir to purchase subscription for your account."
