@@ -20,12 +20,15 @@ def get_or_create_user(message):
     username = message.from_user.username
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+    c.execute("SELECT * FROM users WHERE id = ?", (user_id, ))
     result = c.fetchone()
 
     if result is None:
-        bot.send_message(chat_id=PRIVATE_GROUP_ID, text="New User: " + str(message.from_user.id) + ",@" + str(message.from_user.username))
-        c.execute("INSERT INTO users (id, username) VALUES (?, ?)", (user_id, username))
+        bot.send_message(chat_id=PRIVATE_GROUP_ID,
+                         text="New User: " + str(message.from_user.id) + ",@" +
+                         str(message.from_user.username))
+        c.execute("INSERT INTO users (id, username) VALUES (?, ?)",
+                  (user_id, username))
         conn.commit()
     conn.close()
     return True
@@ -36,10 +39,12 @@ def increment_requests(message):
     user_id = message.from_user.id
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+    c.execute("SELECT * FROM users WHERE id = ?", (user_id, ))
     result = c.fetchone()
     if result is not None:
-        c.execute("UPDATE users SET num_requests = num_requests + 1 WHERE id = ?", (user_id,))
+        c.execute(
+            "UPDATE users SET num_requests = num_requests + 1 WHERE id = ?",
+            (user_id, ))
         conn.commit()
     conn.close()
 
@@ -49,7 +54,8 @@ def check_expired_account(message):
     user_id = message.from_user.id
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("SELECT * FROM users WHERE id = ? AND expiry_time > ?", (user_id, datetime.datetime.now()))
+    c.execute("SELECT * FROM users WHERE id = ? AND expiry_time > ?",
+              (user_id, datetime.datetime.now()))
     result = c.fetchone()
     conn.close()
     if result:
@@ -69,7 +75,7 @@ def get_date(date_str):
 def check_in_trial(user_id):
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("SELECT start_date FROM users WHERE id = ?", (user_id,))
+    c.execute("SELECT start_date FROM users WHERE id = ?", (user_id, ))
     result = c.fetchone()
     # If start_date is none it means the user hasn't submitted any request yet. Hence, the user is in trial period.
     if not result[0]:
@@ -77,7 +83,8 @@ def check_in_trial(user_id):
         return True
     start_date = get_date(result[0])
     # If start_date is more than 5 days ago, the user is not in trial period anymore.
-    if start_date > datetime.datetime.now() - datetime.timedelta(days=TRIAL_DAYS):
+    if start_date > datetime.datetime.now() - datetime.timedelta(
+            days=TRIAL_DAYS):
         conn.close()
         return True
     conn.close()
@@ -88,16 +95,18 @@ def check_in_trial(user_id):
 def set_start_date(user_id):
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("SELECT start_date FROM users WHERE id = ?", (user_id,))
+    c.execute("SELECT start_date FROM users WHERE id = ?", (user_id, ))
     result = c.fetchone()
     if result[0] is None:
-        c.execute("UPDATE users SET start_date = ? WHERE id = ?", (datetime.datetime.now(), user_id))
+        c.execute("UPDATE users SET start_date = ? WHERE id = ?",
+                  (datetime.datetime.now(), user_id))
         conn.commit()
     conn.close()
 
 
-# Check if the user has exceeded the maximum number of requests.        
+# Check if the user has exceeded the maximum number of requests.
 def check_can_request(func):
+
     def wrapper(message):
         in_trial = check_in_trial(message.from_user.id)
         is_expired = check_expired_account(message)
@@ -106,7 +115,11 @@ def check_can_request(func):
             set_start_date(message.from_user.id)
             return
 
-        bot.reply_to(message, "Your trial period is over. Please visit https://grammarlybot.ir to purchase subscription for your account.")
+        bot.reply_to(
+            message,
+            "Your trial period is over. Please visit https://grammarlybot.ir to purchase subscription for your account."
+        )
+
     return wrapper
 
 
@@ -121,17 +134,23 @@ def extend_account(message):
 
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute('SELECT id, expiry_time FROM users WHERE username = ?', (username, ))
+    c.execute('SELECT id, expiry_time FROM users WHERE username = ?',
+              (username, ))
     result = c.fetchone()
     if result is not None:
         if result[1] is None:
             date = datetime.datetime.now()
         else:
             date = get_date(result[1])
-        new_exp_time = max(date, datetime.datetime.now()) + datetime.timedelta(days=days)
-        c.execute("UPDATE users SET expiry_time = ? WHERE username = ?", (new_exp_time, username))
-        bot.send_message(chat_id=PRIVATE_GROUP_ID, text="Account has been extended for {} day(s).".format(days))
+        new_exp_time = max(
+            date, datetime.datetime.now()) + datetime.timedelta(days=days)
+        c.execute("UPDATE users SET expiry_time = ? WHERE username = ?",
+                  (new_exp_time, username))
+        bot.send_message(
+            chat_id=PRIVATE_GROUP_ID,
+            text="Account has been extended for {} day(s).".format(days))
         conn.commit()
     else:
-        bot.send_message(chat_id=PRIVATE_GROUP_ID, text="User not found: " + str(username))
+        bot.send_message(chat_id=PRIVATE_GROUP_ID,
+                         text="User not found: " + str(username))
     conn.close()

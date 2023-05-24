@@ -4,7 +4,7 @@ import re
 import telebot
 from src.gpt import chatgpt
 
-from user import get_or_create_user, increment_requests, check_can_request, extend_account
+from src.models.user import get_or_create_user, increment_requests, check_can_request, extend_account
 
 from src.utility import main_menu_buttons, writing_buttons, gen_menu
 from src.writing import generate_topic, grade_writing, check_grammar, revise_writing, write_essay
@@ -25,28 +25,38 @@ gpt_api = chatgpt.ChatGPT()
 user_lists = {}
 
 
-
+@bot.message_handler(commands=['grade'],
+                     chat_types=['private'],
+                     func=get_or_create_user)
+@check_can_request
 def writing_handler(call):
     data = call.data.split("/writing/")
     if len(data) == 1:
         help_message = '\n'.join(str(button) for button in writing_buttons)
-        bot.edit_message_text("Please select from the options below.\n{}".format(help_message), call.message.chat.id, call.message.message_id, reply_markup=gen_menu(writing_buttons))
+        bot.edit_message_text(
+            "Please select from the options below.\n{}".format(help_message),
+            call.message.chat.id,
+            call.message.message_id,
+            reply_markup=gen_menu(writing_buttons))
     elif data[1] == "gen_topic":
-        generate_topic(call.message, bot, gpt_api)
+        generate_topic(call.message)
     elif data[1] == "grade":
-        grade_writing(call.message, bot, gpt_api)
+        grade_writing(call.message)
     elif data[1] == "check_grammar":
-        check_grammar(call.message, bot, gpt_api)
+        check_grammar(call.message)
     elif data[1] == "revise":
-        revise_writing(call.message, bot, gpt_api)
+        revise_writing(call.message)
     elif data[1] == "write_essay":
-        write_essay(call.message, bot, gpt_api)
+        write_essay(call.message)
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     if call.data == "/":
-        bot.edit_message_text("Please select from the options below.", call.message.chat.id, call.message.message_id, reply_markup=gen_menu(main_menu_buttons))
+        bot.edit_message_text("Please select from the options below.",
+                              call.message.chat.id,
+                              call.message.message_id,
+                              reply_markup=gen_menu(main_menu_buttons))
     if "/writing" in call.data:
         return writing_handler(call)
     elif call.data == "/reading":
@@ -57,7 +67,11 @@ def callback_query(call):
                      chat_types=['private'],
                      func=get_or_create_user)
 def send_welcome(message):
-    bot.reply_to(message, "Hi. Welcome to {}.\nPlease select from the options below. For more information please visit https://grammarlybot.ir.".format(BOT_NAME), reply_markup=gen_menu(main_menu_buttons))
+    bot.reply_to(
+        message,
+        "Hi. Welcome to {}.\nPlease select from the options below. For more information please visit https://grammarlybot.ir."
+        .format(BOT_NAME),
+        reply_markup=gen_menu(main_menu_buttons))
 
 
 @bot.message_handler(commands=['grade'],
@@ -102,7 +116,6 @@ def rewrite(message):
     increment_requests(message)
 
 
-
 @bot.message_handler(commands=['help'],
                      chat_types=['private'],
                      func=get_or_create_user)
@@ -114,7 +127,9 @@ def send_commands_list(message):
         "Copy and paste the essay after the command, then send it.\n" \
         "Example: /rewrite I am a student. I am studying at the university.\n\n" \
         "To purchase a premium account, please visit https://grammarlybot.ir."
-    bot.send_message(message.chat.id, list_of_functions, reply_markup=gen_menu(main_menu_buttons))
+    bot.send_message(message.chat.id,
+                     list_of_functions,
+                     reply_markup=gen_menu(main_menu_buttons))
 
 
 def extend_user(message):
