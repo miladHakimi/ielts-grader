@@ -3,7 +3,7 @@ import re
 
 import telebot
 from src.gpt import chatgpt
-from src.admin.admin import admin_buttons, extend_user
+from src.admin.admin import admin_buttons, extend_user, user_stats
 from src.models.user import get_or_create_user, increment_requests, check_can_request
 from src.utility import main_menu_buttons, writing_buttons, gen_menu
 from src.writing import generate_topic, grade_writing, check_grammar, revise_writing, write_essay
@@ -56,6 +56,8 @@ def admin_handler(call):
             reply_markup=gen_menu(admin_buttons))
     elif data[1] == "extend_user":
         extend_user(call.message, bot)
+    elif data[1] == "user_stats":
+        user_stats(call.message, bot)
 
 
 @bot.callback_query_handler(func=lambda call: True)
