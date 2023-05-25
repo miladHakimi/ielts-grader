@@ -194,3 +194,44 @@ class TestGetOrCreateUser(unittest.TestCase):
         time = datetime.datetime.strptime(result[1], '%Y-%m-%d %H:%M:%S.%f')
         self.assertEqual(time, expiry_date + datetime.timedelta(days=7))
         self.tear_down_db()
+
+    @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
+    def test_total_count_joined_users(self):
+        from src.models.user import count_joined_users
+        self.setup_db()
+        conn = self.get_connection()
+        c = conn.cursor()
+        c.execute(
+            """INSERT INTO users (id, username, start_date) VALUES 
+               ('123', 'Alice', '2021-01-01'),
+               ('124', 'Bob', '2021-02-01'),
+               ('444', 'Charlie', '2021-03-01')"""
+        )
+        conn.commit()
+        conn.close()
+        # Call the function being tested
+        result = count_joined_users()
+        self.assertEqual(result, 3)
+        self.tear_down_db()
+    
+    @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
+    def test_todays_joined_users(self):
+        from src.models.user import count_joined_users
+        self.setup_db()
+        conn = self.get_connection()
+        c = conn.cursor()
+        today = datetime.datetime.today()
+        start_of_today = datetime.datetime(today.year, today.month, today.day)
+        user_start_time = start_of_today + datetime.timedelta(seconds=1)
+        c.execute(
+            """INSERT INTO users (id, username, start_date) VALUES 
+               ('123', 'Alice', '{}'),
+               ('124', 'Bob', '2021-02-01'),
+               ('444', 'Charlie', '2021-03-01')""".format(user_start_time)
+        )
+        conn.commit()
+        conn.close()
+        # Call the function being tested
+        result = count_joined_users(from_date=start_of_today)
+        self.assertEqual(result, 1)
+        self.tear_down_db()

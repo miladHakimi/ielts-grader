@@ -109,7 +109,6 @@ def set_start_date(user_id):
 
 # Check if the user has exceeded the maximum number of requests.
 def check_can_request(func):
-
     def wrapper(message):
         in_trial = check_in_trial(message.from_user.id)
         is_expired = check_expired_account(message)
@@ -127,6 +126,7 @@ def check_can_request(func):
     return wrapper
 
 
+# The format of the message is: username, days
 def extend_account(message):
     username = message.split(",")[0].strip()
     if '@' in username:
@@ -156,5 +156,16 @@ def extend_account(message):
         conn.commit()
     else:
         bot.send_message(chat_id=PRIVATE_GROUP_ID,
-                         text="User not found: " + str(username))
+                         text="User @{} not found: ".format(username))
     conn.close()
+
+
+def count_joined_users(from_date=datetime.datetime.min, to_date=datetime.datetime.now()):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute(
+        "SELECT COUNT(*) FROM users WHERE start_date BETWEEN ? AND ?",
+        (from_date, to_date))
+    result = c.fetchone()
+    conn.close()
+    return result[0]
