@@ -3,9 +3,8 @@ import re
 
 import telebot
 from src.gpt import chatgpt
-
-from src.models.user import get_or_create_user, increment_requests, check_can_request, extend_account
-
+from src.admin.admin import admin_buttons, extend_user
+from src.models.user import get_or_create_user, increment_requests, check_can_request
 from src.utility import main_menu_buttons, writing_buttons, gen_menu
 from src.writing import generate_topic, grade_writing, check_grammar, revise_writing, write_essay
 
@@ -46,6 +45,19 @@ def writing_handler(call):
         write_essay(call.message, bot, gpt_api)
 
 
+def admin_handler(call):
+    data = call.data.split("/admin/")
+    if len(data) == 1:
+        help_message = '\n'.join(str(button) for button in writing_buttons)
+        bot.edit_message_text(
+            "Please select from the options below.\n{}".format(help_message),
+            call.message.chat.id,
+            call.message.message_id,
+            reply_markup=gen_menu(admin_buttons))
+    elif data[1] == "extend_user":
+        extend_user(call.message, bot)
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     if call.data == "/":
@@ -55,6 +67,8 @@ def callback_query(call):
                               reply_markup=gen_menu(main_menu_buttons))
     if "/writing" in call.data:
         return writing_handler(call)
+    if "/admin" in call.data:
+        return admin_handler(call)
     elif call.data == "/reading":
         bot.send_message(call.message.chat.id, "Answer is No")
 
@@ -128,16 +142,12 @@ def send_commands_list(message):
                      reply_markup=gen_menu(main_menu_buttons))
 
 
-def extend_user(message):
-    data = message.text.split("/extend_user", 1)[1]
-    extend_account(data)
-
-
 @bot.message_handler(func=get_or_create_user)
 def echo_all(message):
     if (message.chat.id == int(PRIVATE_GROUP_ID)):
-        if '/extend_user' in message.text:
-            extend_user(message)
+        return bot.send_message(message.chat.id,
+                                "Here are the list of commands:",
+                                reply_markup=gen_menu(admin_buttons))
     if (message.chat.type == 'private'):
         return send_commands_list(message)
 

@@ -14,12 +14,14 @@ def generate_topic(message, tele_bot, gpt_api):
 
 def grade_writing(message, tele_bot, gpt_api):
     tele_bot.reply_to(message, "Please send the topic.")
-    tele_bot.register_next_step_handler(message, recieve_topic, tele_bot, gpt_api)
+    tele_bot.register_next_step_handler(message, recieve_topic, tele_bot,
+                                        gpt_api)
 
 
 def recieve_topic(message, tele_bot, gpt_api):
     tele_bot.reply_to(message, "Please send your essay.")
-    tele_bot.register_next_step_handler(message, grade_essay, tele_bot, gpt_api, "Topic: " + message.text)
+    tele_bot.register_next_step_handler(message, grade_essay, tele_bot,
+                                        gpt_api, "Topic: " + message.text)
 
 
 def grade_essay(message, tele_bot, gpt_api, topic):
@@ -33,7 +35,8 @@ def grade_essay(message, tele_bot, gpt_api, topic):
             "The essay must contain between 10 and 500 words. Please try again."
         )
         return
-    tele_bot.reply_to(message, "Please wait while we are processing your query.")
+    tele_bot.reply_to(message,
+                      "Please wait while we are processing your query.")
     chat_gpt_request = "Suppose you're an IELTS writing reviewer. Qualitatively assess my ielts writing task base on this factors: " \
                     "Task Response:\n"\
                     "Coherence and Cohesion:\n"\
@@ -58,12 +61,15 @@ def grade_essay(message, tele_bot, gpt_api, topic):
 
 def check_grammar(message, tele_bot, gpt_api):
     tele_bot.reply_to(message, "Please send the text.")
-    tele_bot.register_next_step_handler(message, extract_grammar, tele_bot, gpt_api)
+    tele_bot.register_next_step_handler(message, extract_grammar, tele_bot,
+                                        gpt_api)
 
 
 def extract_grammar(message, tele_bot, gpt_api):
-    chat_gpt_request = "Suppose you're an IELTS writing teacher. Check the grammar mistakes and list them in bullet points. Here is my essay:\n{}".format(message.text)
-    tele_bot.reply_to(message, "Please wait while we are processing your query.")
+    chat_gpt_request = "Suppose you're an IELTS writing teacher. Check the grammar mistakes and list them in bullet points. Here is my essay:\n{}".format(
+        message.text)
+    tele_bot.reply_to(message,
+                      "Please wait while we are processing your query.")
     response = gpt_api.prompt(chat_gpt_request)
     tele_bot.reply_to(message, response.choices[0].text)
     increment_requests(message)
@@ -75,17 +81,22 @@ def revise_writing(message, tele_bot, gpt_api):
 
 
 def rewrite(message, tele_bot, gpt_api):
-    chat_gpt_request = "Suppose you're an IELTS writing expert. Revise the following essay.:\n{}".format(message.text)
-    tele_bot.reply_to(message, "Please wait while we are processing your query.")
+    chat_gpt_request = "Suppose you're an IELTS writing expert. Revise the following essay.:\n{}".format(
+        message.text)
+    tele_bot.reply_to(message,
+                      "Please wait while we are processing your query.")
     response = gpt_api.prompt(chat_gpt_request)
     tele_bot.reply_to(message, response.choices[0].text)
     increment_requests(message)
 
 
 def write_essay(message, tele_bot, gpt_api):
+
     def generate_essay(message):
-        chat_gpt_request = "Suppose you're an advanced IELTS expert. Write an academic IELTS essay with the following topic.:\n{}".format(message.text)
-        tele_bot.reply_to(message, "Please wait while we are processing your query.")
+        chat_gpt_request = "Suppose you're an advanced IELTS expert. Write an academic IELTS essay with the following topic.:\n{}".format(
+            message.text)
+        tele_bot.reply_to(message,
+                          "Please wait while we are processing your query.")
         response = gpt_api.prompt(chat_gpt_request)
         tele_bot.reply_to(message, response.choices[0].text)
         increment_requests(message)

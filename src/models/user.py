@@ -127,6 +127,7 @@ def check_can_request(func):
     return wrapper
 
 
+# The format of the message is: username, days
 def extend_account(message):
     username = message.split(",")[0].strip()
     if '@' in username:
