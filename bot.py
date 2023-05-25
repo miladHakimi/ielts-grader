@@ -146,7 +146,7 @@ def send_commands_list(message):
 
 @bot.message_handler(func=get_or_create_user)
 def echo_all(message):
-    if (message.chat.id == int(PRIVATE_GROUP_ID)):
+    if message.chat.id == int(PRIVATE_GROUP_ID) and message.text == "/start":
         return bot.send_message(message.chat.id,
                                 "Here are the list of commands:",
                                 reply_markup=gen_menu(admin_buttons))
