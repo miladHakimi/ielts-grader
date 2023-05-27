@@ -27,6 +27,6 @@ def extend_user(message, tele_bot):
 def user_stats(message, tele_bot):
     today = datetime.datetime.today()
     start_of_today = datetime.datetime(today.year, today.month, today.day)
-    today_count = count_joined_users(start_of_today)
+    today_count = count_joined_users(from_date=start_of_today)
     total_count = count_joined_users()
     tele_bot.reply_to(message, "Today's joined users: {}\nTotal joined users: {}".format(today_count, total_count))
