@@ -170,3 +170,12 @@ def count_joined_users(from_date=datetime.datetime.min, to_date=datetime.datetim
     result = c.fetchone()
     conn.close()
     return result[0]
+
+
+def count_requests():
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT SUM(num_requests) FROM users")
+    result = c.fetchone()
+    conn.close()
+    return result[0]

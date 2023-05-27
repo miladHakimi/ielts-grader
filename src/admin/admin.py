@@ -1,7 +1,7 @@
 import datetime
 
 from src.utility import KeyboardButton
-from src.models.user import extend_account, count_joined_users
+from src.models.user import extend_account, count_joined_users, count_requests
 
 admin_buttons = [
     KeyboardButton("Extend user 👩‍💻", "/admin/extend_user",
@@ -29,4 +29,5 @@ def user_stats(message, tele_bot):
     start_of_today = datetime.datetime(today.year, today.month, today.day)
     today_count = count_joined_users(from_date=start_of_today)
     total_count = count_joined_users()
-    tele_bot.reply_to(message, "Today's joined users: {}\nTotal joined users: {}".format(today_count, total_count))
+    total_requests = count_requests()
+    tele_bot.reply_to(message, "Today's joined users: {}\nTotal joined users: {}\nTotal Requests: {}".format(today_count, total_count, total_requests))
