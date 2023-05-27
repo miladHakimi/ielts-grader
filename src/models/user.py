@@ -28,8 +28,8 @@ def get_or_create_user(message):
         bot.send_message(chat_id=PRIVATE_GROUP_ID,
                          text="New User: " + str(message.from_user.id) + ",@" +
                          str(message.from_user.username))
-        c.execute("INSERT INTO users (id, username) VALUES (?, ?)",
-                  (user_id, username))
+        c.execute("INSERT INTO users (id, username, start_date) VALUES (?, ?, ?)",
+                  (user_id, username, datetime.datetime.now()))
         conn.commit()
     conn.close()
     return True
@@ -160,12 +160,13 @@ def extend_account(message):
     conn.close()
 
 
-def count_joined_users(from_date=datetime.datetime.min, to_date=datetime.datetime.now()):
+def count_joined_users(from_date=datetime.datetime.min, to_date=datetime.datetime.max):
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute(
         "SELECT COUNT(*) FROM users WHERE start_date BETWEEN ? AND ?",
         (from_date, to_date))
+    
     result = c.fetchone()
     conn.close()
     return result[0]
