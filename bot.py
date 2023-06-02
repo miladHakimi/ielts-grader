@@ -2,8 +2,8 @@ import os
 
 import telebot
 from src.gpt import chatgpt
-from src.admin.admin import admin_buttons, extend_user, user_stats
-from src.models.user import get_or_create_user
+from src.admin.admin import admin_buttons, extend_user, user_stats, api_stats
+from src.models import get_or_create_user, create_tables
 from src.utility import main_menu_buttons, writing_buttons, gen_menu
 from src.writing import generate_topic, grade_writing, check_grammar, revise_writing, write_essay
 
@@ -50,6 +50,8 @@ def admin_handler(call):
         extend_user(call.message, bot)
     elif data[1] == "user_stats":
         user_stats(call.message, bot)
+    elif data[1] == "api_stats":
+        api_stats(call.message, bot)
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -97,4 +99,6 @@ def echo_all(message):
         return send_commands_list(message)
 
 
-bot.infinity_polling()
+if __name__ == '__main__':
+    create_tables()
+    bot.infinity_polling()

@@ -1,13 +1,15 @@
 import datetime
 
 from src.utility import KeyboardButton
-from src.models.user import extend_account, count_joined_users, count_requests
+from src.models import extend_account, count_joined_users, count_requests, get_writing_stats
 
 admin_buttons = [
     KeyboardButton("Extend user 👩‍💻", "/admin/extend_user",
                    {"en": "Extends the user's subscription."}),
     KeyboardButton("User stats 📈", "/admin/user_stats",
                    {"en": "Shows user stats."}),
+    KeyboardButton("API stats 📊", "/admin/api_stats",
+                   {"en": "Shows API stats."}),
 ]
 
 
@@ -31,3 +33,12 @@ def user_stats(message, tele_bot):
     total_count = count_joined_users()
     total_requests = count_requests()
     tele_bot.reply_to(message, "Today's joined users: {}\nTotal joined users: {}\nTotal Requests: {}".format(today_count, total_count, total_requests))
+
+
+def api_stats(message, tele_bot):
+    writing_stats = get_writing_stats()
+    # Format must be like this: Topic: Count
+    result = ""
+    for i in writing_stats:
+        result += "{}: {}\n".format(i[1].split("/")[1], i[2])
+    tele_bot.reply_to(message, result)

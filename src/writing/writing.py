@@ -1,6 +1,6 @@
 import re
 
-from src.models.user import increment_requests
+from src.models import increment_requests, increment_api_count
 
 
 def generate_topic(message, tele_bot, gpt_api):
@@ -10,6 +10,7 @@ def generate_topic(message, tele_bot, gpt_api):
         response.choices[0].text = response.choices[0].text.split('Topic:')[1]
     tele_bot.reply_to(message, response.choices[0].text)
     increment_requests(message)
+    increment_api_count("writing/Generate Topic")
 
 
 def grade_writing(message, tele_bot, gpt_api):
@@ -57,6 +58,7 @@ def grade_essay(message, tele_bot, gpt_api, topic):
     response = gpt_api.prompt(chat_gpt_request)
     tele_bot.reply_to(message, response.choices[0].text)
     increment_requests(message)
+    increment_api_count("writing/Grade Writing")
 
 
 def check_grammar(message, tele_bot, gpt_api):
@@ -73,6 +75,7 @@ def extract_grammar(message, tele_bot, gpt_api):
     response = gpt_api.prompt(chat_gpt_request)
     tele_bot.reply_to(message, response.choices[0].text)
     increment_requests(message)
+    increment_api_count("writing/Check Grammar")
 
 
 def revise_writing(message, tele_bot, gpt_api):
@@ -88,6 +91,7 @@ def rewrite(message, tele_bot, gpt_api):
     response = gpt_api.prompt(chat_gpt_request)
     tele_bot.reply_to(message, response.choices[0].text)
     increment_requests(message)
+    increment_api_count("writing/Revise Writing")
 
 
 def write_essay(message, tele_bot, gpt_api):
@@ -100,6 +104,7 @@ def write_essay(message, tele_bot, gpt_api):
         response = gpt_api.prompt(chat_gpt_request)
         tele_bot.reply_to(message, response.choices[0].text)
         increment_requests(message)
+        increment_api_count("writing/Write Essay")
 
     tele_bot.reply_to(message, "Please send the topic.")
     tele_bot.register_next_step_handler(message, generate_essay)
