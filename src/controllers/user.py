@@ -155,9 +155,3 @@ def count_requests():
         statement = select(func.sum(User.num_requests))
         result = session.execute(statement).scalar()
         return result
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute("SELECT SUM(num_requests) FROM users")
-    result = c.fetchone()
-    conn.close()
-    return result[0]

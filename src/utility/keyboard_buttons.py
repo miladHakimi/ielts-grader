@@ -37,7 +37,9 @@ default_menu_buttons = [
 ]
 
 main_menu_buttons = [
-    KeyboardButton("Writing 📝", "/writing", {"en": "Writing menu."})
+    KeyboardButton("Writing 📝", "/writing", {"en": "Writing menu."}),
+    KeyboardButton("Speaking 🗣️", "/speaking", {"en": "Speaking menue."})
+
 ]
 
 writing_buttons = [
@@ -51,4 +53,13 @@ writing_buttons = [
                    {"en": "Rewrites your writing essay."}),
     KeyboardButton("Write Essay ✍️", "/writing/write_essay",
                    {"en": "Writes an essay for you."}),
+]
+
+speaking_buttons = [
+    KeyboardButton("Generate Topic 💭", "/speaking/gen_topic",
+                   {"en": "Generates a topic for your speaking task."}),
+    KeyboardButton("Grade 💯", "/speaking/grade",
+                   {"en": "Grades your speaking from 0 - 9."}),
+    KeyboardButton("Generate Idea 💡", "/speaking/gen_idea",
+                   {"en": "Generates an idea for your speaking task."}),
 ]
