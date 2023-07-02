@@ -264,3 +264,20 @@ class TestGetOrCreateUser(unittest.TestCase):
         result = check_in_trial(124)
         self.assertEqual(result, False)
         self.tear_down_db()
+
+    @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
+    def test_count_requests(self):
+        from src.controllers.user import count_requests
+        self.setup_db()
+        conn = self.get_connection()
+        c = conn.cursor()
+        # A user who just joined
+        c.execute("""INSERT INTO users (id, username, num_requests) VALUES 
+               ('123', 'Alice', 10),
+               ('124', 'Bob', 100)""")
+        conn.commit()
+        conn.close()
+        # Call the function being tested
+        result = count_requests()
+        self.assertEqual(result, 110)
+        self.tear_down_db()
