@@ -3,7 +3,7 @@ import os
 import telebot
 from src.gpt import chatgpt
 from src.admin.admin import admin_buttons, extend_user, user_stats, api_stats
-from src.models import get_or_create_user, create_tables
+from src.controllers import get_or_create_user, create_tables
 from src.utility import main_menu_buttons, writing_buttons, gen_menu
 from src.writing import generate_topic, grade_writing, check_grammar, revise_writing, write_essay
 

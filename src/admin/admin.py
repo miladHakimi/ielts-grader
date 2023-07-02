@@ -1,7 +1,7 @@
 import datetime
 
 from src.utility import KeyboardButton
-from src.models import extend_account, count_joined_users, count_requests, get_writing_stats
+from src.controllers import extend_account, count_joined_users, count_requests, get_writing_stats
 
 admin_buttons = [
     KeyboardButton("Extend user 👩‍💻", "/admin/extend_user",

@@ -40,16 +40,21 @@ class TestGetOrCreateUser(unittest.TestCase):
         self.conn.close()
 
     def tear_down_db(self):
-        os.remove("test_database.db")
+        # Drop the "users" table
+        self.conn = sqlite3.connect("test_database.db")
+        self.c = self.conn.cursor()
+        self.c.execute("DROP TABLE users")
+        self.conn.commit()
+        self.conn.close()
 
     def get_connection(self):
         # Connect to the database and return the connection
         return sqlite3.connect("test_database.db")
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
-    @patch('src.models.user.bot.send_message')
+    @patch('src.controllers.user.bot.send_message')
     def test_get_or_create_user_new_user(self, mock_bot_send_message):
-        from src.models.user import get_or_create_user
+        from src.controllers.user import get_or_create_user
 
         self.setup_db()
         # Call the function with the message object
@@ -73,8 +78,7 @@ class TestGetOrCreateUser(unittest.TestCase):
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
     def test_get_or_create_user_existing_user(self):
-        from src.models.user import get_or_create_user
-
+        from src.controllers.user import get_or_create_user
         self.setup_db()
         conn = self.get_connection()
         c = conn.cursor()
@@ -103,7 +107,7 @@ class TestGetOrCreateUser(unittest.TestCase):
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
     def test_existing_user_requests(self):
-        from src.models.user import increment_requests
+        from src.controllers.user import increment_requests
 
         self.setup_db()
         conn = self.get_connection()
@@ -125,7 +129,7 @@ class TestGetOrCreateUser(unittest.TestCase):
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
     def test_not_expired(self):
-        from src.models.user import check_expired_account
+        from src.controllers.user import check_expired_account
 
         self.setup_db()
         conn = self.get_connection()
@@ -146,7 +150,7 @@ class TestGetOrCreateUser(unittest.TestCase):
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
     def test_expired(self):
-        from src.models.user import check_expired_account
+        from src.controllers.user import check_expired_account
 
         self.setup_db()
         conn = self.get_connection()
@@ -164,9 +168,9 @@ class TestGetOrCreateUser(unittest.TestCase):
         self.tear_down_db()
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
-    @patch('src.models.user.bot.send_message')
+    @patch('src.controllers.user.bot.send_message')
     def test_existing_user_account_extended(self, mock_bot_send_message):
-        from src.models.user import extend_account
+        from src.controllers.user import extend_account
         self.setup_db()
         conn = self.get_connection()
         c = conn.cursor()
@@ -197,7 +201,7 @@ class TestGetOrCreateUser(unittest.TestCase):
 
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
     def test_total_count_joined_users(self):
-        from src.models.user import count_joined_users
+        from src.controllers.user import count_joined_users
         self.setup_db()
         conn = self.get_connection()
         c = conn.cursor()
@@ -213,10 +217,10 @@ class TestGetOrCreateUser(unittest.TestCase):
         result = count_joined_users()
         self.assertEqual(result, 3)
         self.tear_down_db()
-    
+
     @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
     def test_todays_joined_users(self):
-        from src.models.user import count_joined_users
+        from src.controllers.user import count_joined_users
         self.setup_db()
         conn = self.get_connection()
         c = conn.cursor()
@@ -234,4 +238,46 @@ class TestGetOrCreateUser(unittest.TestCase):
         # Call the function being tested
         result = count_joined_users(from_date=start_of_today)
         self.assertEqual(result, 1)
+        self.tear_down_db()
+
+    @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
+    def test_can_request(self):
+        from src.controllers.user import check_in_trial
+        self.setup_db()
+        conn = self.get_connection()
+        c = conn.cursor()
+        start_time = datetime.datetime.now()
+        # A user who just joined
+        c.execute("""INSERT INTO users (id, username, start_date) VALUES 
+               ('123', 'Alice', '{}')""".format(start_time))
+
+        # A user who joined 30 days ago
+        c.execute("""INSERT INTO users (id, username, start_date) VALUES
+                ('124', 'Bob', '{}')""".format(start_time - datetime.timedelta(days=30)))
+
+        conn.commit()
+        conn.close()
+        # Call the function being tested
+        result = check_in_trial(123)
+        self.assertEqual(result, True)
+
+        result = check_in_trial(124)
+        self.assertEqual(result, False)
+        self.tear_down_db()
+
+    @patch.dict(os.environ, {"DB_NAME": "test_database.db"})
+    def test_count_requests(self):
+        from src.controllers.user import count_requests
+        self.setup_db()
+        conn = self.get_connection()
+        c = conn.cursor()
+        # A user who just joined
+        c.execute("""INSERT INTO users (id, username, num_requests) VALUES 
+               ('123', 'Alice', 10),
+               ('124', 'Bob', 100)""")
+        conn.commit()
+        conn.close()
+        # Call the function being tested
+        result = count_requests()
+        self.assertEqual(result, 110)
         self.tear_down_db()
