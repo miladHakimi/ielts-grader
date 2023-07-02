@@ -1,6 +1,6 @@
 import re
 
-from src.models import increment_requests, increment_api_count
+from src.controllers import increment_requests, increment_api_count
 
 
 def generate_topic(message, tele_bot, gpt_api):
