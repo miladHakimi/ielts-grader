@@ -1,16 +1,15 @@
 import os
 
 import telebot
+import datetime
+
 from src.gpt import chatgpt
 from src.admin.admin import admin_buttons, extend_user, user_stats, api_stats
-from src.controllers import get_or_create_user, create_tables
-from src.utility import main_menu_buttons, writing_buttons, gen_menu
+from src.controllers import get_or_create_user, create_tables, generate_speaking_topic, grade_speaking, generate_idea
+from src.utility import main_menu_buttons, writing_buttons, speaking_buttons, gen_menu
 from src.writing import generate_topic, grade_writing, check_grammar, rewrite_writing, write_essay
 
-import speech_recognition as sr 
-from pydub import AudioSegment
 
-r = sr.Recognizer()
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 PRIVATE_GROUP_ID = os.environ.get('PRIVATE_GROUP_ID')
@@ -41,6 +40,22 @@ def writing_handler(call):
     elif data[1] == "write_essay":
         write_essay(call.message, bot, gpt_api)
 
+def speaking_handler(call):
+    data = call.data.split("/speaking/")
+    if len(data) == 1:
+        help_message = '\n'.join(str(button) for button in speaking_buttons)
+        bot.edit_message_text(
+            "Please select from the options below.\n{}".format(help_message),
+            call.message.chat.id,
+            call.message.message_id,
+            reply_markup=gen_menu(speaking_buttons))
+    elif data[1] == "gen_topic":
+        generate_speaking_topic(call.message, bot, gpt_api)
+    elif data[1] == "grade":
+        grade_speaking(call.message, bot, gpt_api)
+    elif data[1] == "gen_idea":
+        generate_idea(call.message, bot, gpt_api)
+
 
 def admin_handler(call):
     data = call.data.split("/admin/")
@@ -68,6 +83,8 @@ def callback_query(call):
                               reply_markup=gen_menu(main_menu_buttons))
     if "/writing" in call.data:
         return writing_handler(call)
+    if "/speaking" in call.data:
+        return speaking_handler(call)
     if "/admin" in call.data:
         return admin_handler(call)
 
@@ -82,29 +99,6 @@ def send_welcome(message):
         .format(BOT_NAME),
         reply_markup=gen_menu(main_menu_buttons))
 
-
-@bot.message_handler(commands=['speaking'],
-                     chat_types=['private'],
-                     func=get_or_create_user)
-@check_can_request
-def speaking(message):
-    bot.reply_to(message, "Please record your voice and send it to me.")
-    bot.register_next_step_handler(message, process_speaking_step)
-    increment_requests(message)
-
-
-def process_speaking_step(message):
-    if message.voice:
-        file_info = bot.get_file(message.voice.file_id)
-        downloaded_file = bot.download_file(file_info.file_path)
-        with open('new_file.ogg', 'wb') as new_file:
-            new_file.write(downloaded_file)
-        sound = AudioSegment.from_ogg('./new_file.ogg')
-        sound.export("new_file.wav", format="wav")
-        with sound as source:
-            user_audio = r.record(source)
-        text = r.recognize_google(user_audio, language="en-US")
-        print(text)
 
 @bot.message_handler(commands=['help'],
                      chat_types=['private'],
