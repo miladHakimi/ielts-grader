@@ -47,8 +47,8 @@ writing_buttons = [
                    {"en": "Grades your writing essay from 0 - 9."}),
     KeyboardButton("Check Grammar ✅", "/writing/check_grammar",
                    {"en": "Checks your writing essay for grammar mistakes."}),
-    KeyboardButton("Revise 👩‍💻", "/writing/revise_writing",
-                   {"en": "Revises your writing essay."}),
+    KeyboardButton("Rewrite 👩‍💻", "/writing/rewrite_writing",
+                   {"en": "Rewrites your writing essay."}),
     KeyboardButton("Write Essay ✍️", "/writing/write_essay",
                    {"en": "Writes an essay for you."}),
 ]

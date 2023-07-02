@@ -78,7 +78,7 @@ def extract_grammar(message, tele_bot, gpt_api):
     increment_api_count("writing/Check Grammar")
 
 
-def revise_writing(message, tele_bot, gpt_api):
+def rewrite_writing(message, tele_bot, gpt_api):
     tele_bot.reply_to(message, "Please send the text.")
     tele_bot.register_next_step_handler(message, rewrite, tele_bot, gpt_api)
 
@@ -91,7 +91,7 @@ def rewrite(message, tele_bot, gpt_api):
     response = gpt_api.prompt(chat_gpt_request)
     tele_bot.reply_to(message, response.choices[0].text)
     increment_requests(message)
-    increment_api_count("writing/Revise Writing")
+    increment_api_count("writing/Rewrite Writing")
 
 
 def write_essay(message, tele_bot, gpt_api):

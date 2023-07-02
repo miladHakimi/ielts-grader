@@ -138,6 +138,8 @@ def extend_account(message):
         new_exp_time = max(
             date, datetime.datetime.now()) + datetime.timedelta(days=days)
         user.expiry_time = new_exp_time
+        bot.send_message(chat_id=PRIVATE_GROUP_ID,
+                    text="Account @{} has been extended for {} day(s).".format(username, days))
         session.commit()
 
 

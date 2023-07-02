@@ -25,7 +25,7 @@ def create_api_table():
 
 
 def create_api_records():
-    apis = ["writing/Generate Topic", "writing/Grade Writing", "writing/Check Grammar", "writing/Revise Writing", "writing/Write Essay"]
+    apis = ["writing/Generate Topic", "writing/Grade Writing", "writing/Check Grammar", "writing/Rewrite Writing", "writing/Write Essay"]
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     for api in apis:

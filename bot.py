@@ -5,7 +5,7 @@ from src.gpt import chatgpt
 from src.admin.admin import admin_buttons, extend_user, user_stats, api_stats
 from src.controllers import get_or_create_user, create_tables
 from src.utility import main_menu_buttons, writing_buttons, gen_menu
-from src.writing import generate_topic, grade_writing, check_grammar, revise_writing, write_essay
+from src.writing import generate_topic, grade_writing, check_grammar, rewrite_writing, write_essay
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 PRIVATE_GROUP_ID = os.environ.get('PRIVATE_GROUP_ID')
@@ -31,8 +31,8 @@ def writing_handler(call):
         grade_writing(call.message, bot, gpt_api)
     elif data[1] == "check_grammar":
         check_grammar(call.message, bot, gpt_api)
-    elif data[1] == "revise":
-        revise_writing(call.message, bot, gpt_api)
+    elif data[1] == "rewrite":
+        rewrite_writing(call.message, bot, gpt_api)
     elif data[1] == "write_essay":
         write_essay(call.message, bot, gpt_api)
 
