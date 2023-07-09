@@ -1,14 +1,12 @@
 import os
 
 import telebot
-import datetime
 
 from src.gpt import chatgpt
 from src.admin.admin import admin_buttons, extend_user, user_stats, api_stats
 from src.controllers import get_or_create_user, create_tables, generate_speaking_topic, grade_speaking, generate_idea
 from src.utility import main_menu_buttons, writing_buttons, speaking_buttons, gen_menu
 from src.writing import generate_topic, grade_writing, check_grammar, rewrite_writing, write_essay
-
 
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
@@ -39,6 +37,7 @@ def writing_handler(call):
         rewrite_writing(call.message, bot, gpt_api)
     elif data[1] == "write_essay":
         write_essay(call.message, bot, gpt_api)
+
 
 def speaking_handler(call):
     data = call.data.split("/speaking/")
