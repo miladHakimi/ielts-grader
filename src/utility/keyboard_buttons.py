@@ -32,14 +32,22 @@ def gen_menu(menu_buttons):
     return markup
 
 
+def gen_options_buttons(word, question, options, asnwer):
+    option_buttons = []
+    for option in options:
+        option_buttons.append(KeyboardButton("{}) {}".format(option, options[option]), "/reading/vocab/{}/{}/{}".format(word, option, asnwer),
+                                             {"en": ""}))
+    return option_buttons
+
+
 default_menu_buttons = [
     KeyboardButton("Home 🏠", "/", {"en": "Main menu."}),
 ]
 
 main_menu_buttons = [
-    KeyboardButton("Writing 📝", "/writing", {"en": "Writing menu."}),
-    KeyboardButton("Speaking 🗣️", "/speaking", {"en": "Speaking menue."})
-
+    KeyboardButton("Reading 📚", "/reading", {"en": "Reading menue."}),
+    KeyboardButton("Speaking 🗣️", "/speaking", {"en": "Speaking menue."}),
+    KeyboardButton("Writing 📝", "/writing", {"en": "Writing menu."})
 ]
 
 writing_buttons = [
@@ -62,4 +70,9 @@ speaking_buttons = [
                    {"en": "Grades your speaking from 0 - 9."}),
     KeyboardButton("Generate Idea 💡", "/speaking/gen_idea",
                    {"en": "Generates an idea for your speaking task."}),
+]
+
+reading_buttons = [
+    KeyboardButton("Teach me a word! 🤓", "/reading/vocab",
+                   {"en": "Teaches you a random word."}),
 ]
