@@ -22,13 +22,14 @@ class KeyboardButton(InlineKeyboardButton):
         return self.name + " : " + self.get_description()
 
 
-def gen_menu(menu_buttons):
+def gen_menu(menu_buttons, is_home=False):
     markup = InlineKeyboardMarkup()
     markup.row_width = 4
     for button in menu_buttons:
         markup.add(button)
-    for button in default_menu_buttons:
-        markup.add(button)
+    if not is_home:
+        for button in default_menu_buttons:
+            markup.add(button)
     return markup
 
 

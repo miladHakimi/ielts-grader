@@ -75,7 +75,6 @@ def check_in_trial(user_id):
         result = session.execute(statement).scalar_one()
         if not result:
             return True
-        print("result: ", result)
         start_date = result
         if start_date > datetime.datetime.now() - datetime.timedelta(days=TRIAL_DAYS):
             return True

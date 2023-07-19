@@ -4,7 +4,7 @@ import telebot
 
 from src.gpt import chatgpt
 from src.admin.admin import admin_buttons, extend_user, user_stats, api_stats
-from src.controllers import get_or_create_user, create_tables, generate_speaking_topic, grade_speaking, generate_idea, teach_word, check_response
+from src.controllers import get_or_create_user, create_tables, generate_speaking_topic, grade_speaking, generate_idea, teach_word, check_response, check_can_request
 from src.utility import main_menu_buttons, writing_buttons, speaking_buttons, gen_menu, reading_buttons
 from src.writing import generate_topic, grade_writing, check_grammar, rewrite_writing, write_essay
 
@@ -87,12 +87,13 @@ def admin_handler(call):
 
 
 @bot.callback_query_handler(func=lambda call: "reading/vocab/" not in call.data)
+@check_can_request
 def callback_query(call):
     if call.data == "/":
         bot.edit_message_text("Please select from the options below.",
                               call.message.chat.id,
                               call.message.message_id,
-                              reply_markup=gen_menu(main_menu_buttons))
+                              reply_markup=gen_menu(main_menu_buttons, True))
     if "/writing" in call.data:
         return writing_handler(call)
     if "/speaking" in call.data:
@@ -111,7 +112,7 @@ def send_welcome(message):
         message,
         "Hi. Welcome to {}.\nPlease select from the options below. For more information please visit https://grammarlybot.ir."
         .format(BOT_NAME),
-        reply_markup=gen_menu(main_menu_buttons))
+        reply_markup=gen_menu(main_menu_buttons, True))
 
 
 @bot.message_handler(commands=['help'],
@@ -122,7 +123,7 @@ def send_commands_list(message):
         "To purchase a premium account, please visit https://grammarlybot.ir."
     bot.send_message(message.chat.id,
                      list_of_functions,
-                     reply_markup=gen_menu(main_menu_buttons))
+                     reply_markup=gen_menu(main_menu_buttons, True))
 
 
 @bot.message_handler(func=get_or_create_user)
