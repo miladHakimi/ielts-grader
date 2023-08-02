@@ -7,6 +7,7 @@ import datetime
 from sqlalchemy import create_engine, select, func
 from sqlalchemy.orm import Session
 from src.models.user import User
+from . import engine
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 DB_NAME = os.environ.get('DB_NAME')
@@ -16,8 +17,6 @@ TRIAL_DAYS = 5
 BOT_ID = int(BOT_TOKEN.split(':')[0].strip())
 
 bot = telebot.TeleBot(BOT_TOKEN)
-
-engine = create_engine("sqlite:///{}".format(DB_NAME))
 
 
 # This function is called when the user sends a message to the bot

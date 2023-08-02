@@ -1,9 +1,7 @@
 import datetime
 
-from typing import Optional
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
+from typing import Optional, List
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from sqlalchemy.types import DateTime, Float, Integer, String
 
@@ -21,6 +19,7 @@ class User(Base):
     expiry_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     num_requests: Mapped[int] = mapped_column(Integer, default=0)
     balance = mapped_column(Float, default=0.0)
+    words: Mapped[List["Word"]] = relationship(back_populates="user")
 
     def __repr__(self):
         return f"User(id={self.id}, username={self.username}, num_requests={self.num_requests}, expiry_time={self.expiry_time})"

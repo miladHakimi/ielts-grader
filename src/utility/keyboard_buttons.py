@@ -74,6 +74,8 @@ speaking_buttons = [
 ]
 
 reading_buttons = [
-    KeyboardButton("Teach me a word! 🤓", "/reading/vocab",
+    KeyboardButton("Teach me a new word! 🤓", "/reading/vocab",
                    {"en": "Teaches you a random word."}),
+    KeyboardButton("Show me a familliar word! 🧠", "/reading/recall",
+                   {"en": "Shows a previously visited word."}),
 ]

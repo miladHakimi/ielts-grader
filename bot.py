@@ -4,7 +4,7 @@ import telebot
 
 from src.gpt import chatgpt
 from src.admin.admin import admin_buttons, extend_user, user_stats, api_stats
-from src.controllers import get_or_create_user, create_tables, generate_speaking_topic, grade_speaking, generate_idea, teach_word, check_response, check_can_request
+from src.controllers import get_or_create_user, create_tables, generate_speaking_topic, grade_speaking, generate_idea, teach_word, check_response, check_can_request, recall_word
 from src.utility import main_menu_buttons, writing_buttons, speaking_buttons, gen_menu, reading_buttons
 from src.writing import generate_topic, grade_writing, check_grammar, rewrite_writing, write_essay
 
@@ -29,6 +29,8 @@ def reading_handler(call):
             reply_markup=gen_menu(reading_buttons))
     elif data[1] == "vocab":
         teach_word(call.message, bot, gpt_api)
+    elif data[1] == "recall":
+        recall_word(call.message, bot, gpt_api)
 
 
 def writing_handler(call):
