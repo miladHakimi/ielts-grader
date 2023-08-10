@@ -23,3 +23,13 @@ class User(Base):
 
     def __repr__(self):
         return f"User(id={self.id}, username={self.username}, num_requests={self.num_requests}, expiry_time={self.expiry_time})"
+
+
+class Pending(Base):
+    """ Represents pending exnettion requests. """
+    __tablename__ = 'pending'
+    username: Mapped[str] = mapped_column(String(33), primary_key=True)
+    expiry_time: Mapped[datetime.datetime] = mapped_column(DateTime)
+
+    def __repr__(self):
+        return f"Pending(id={self.username}, expiry_time={self.expiry_time})"

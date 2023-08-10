@@ -6,7 +6,7 @@ import datetime
 
 from sqlalchemy import create_engine, select, func
 from sqlalchemy.orm import Session
-from src.models.user import User
+from src.models.user import User, Pending
 from . import engine
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
@@ -93,9 +93,43 @@ def set_start_date(user_id):
     conn.close()
 
 
-# Check if the user has exceeded the maximum number of requests.
+def update_username(message):
+    """" Updates the username if it has changed. """
+    user_id = message.from_user.id
+    username = message.from_user.username
+    with Session(engine) as session:
+        statement = select(User).where(User.id == user_id)
+        user = session.execute(statement).scalar_one_or_none()
+        if not user:
+            return
+        if user.username != username:
+            user.username = username
+            session.commit()
+
+
+def update_expiry_time(message):
+    """" Scans the pending expiry requests for this user name and updates the expiry time. """
+    user_id = message.from_user.id
+    with Session(engine) as session:
+        statement = select(User).where(User.id == user_id)
+        user = session.execute(statement).scalar_one_or_none()
+        if not user:
+            return
+        if user.username:
+            statement = select(Pending).where(Pending.username == user.username)
+            pending = session.execute(statement).scalar_one_or_none()
+            if pending:
+                user.expiry_time = pending.expiry_time
+                # remove the pending request
+                session.delete(pending)
+                session.commit()
+                bot.send_message(chat_id=PRIVATE_GROUP_ID, text="Expiry update for user " + user.username)
+
+
 def check_can_request(func):
     def wrapper(message):
+        update_username(message)
+        update_expiry_time(message)
         in_trial = check_in_trial(message.from_user.id)
         is_expired = check_expired_account(message)
         if in_trial or not is_expired:
@@ -124,10 +158,16 @@ def extend_account(message):
 
     with Session(engine) as session:
         statement = select(User).where(User.username == username)
-        user = session.execute(statement).scalar_one()
+        # Check if the user exists.
+        user = session.execute(statement).scalar_one_or_none()
         if not user:
             bot.send_message(chat_id=PRIVATE_GROUP_ID,
-                             text="User @{} not found: ".format(username))
+                             text="User @{} not found. Added the extension to the pending table.".format(username))
+            # TODO(@milad): Fix this. The date must be maxed beteween the current expiry date and now.
+            # Add the extension to the pending table.
+            pending = Pending(username=username, expiry_time=datetime.datetime.now() + datetime.timedelta(days=days))
+            session.add(pending)
+            session.commit()
             return
         if user.expiry_time is None:
             date = datetime.datetime.now()

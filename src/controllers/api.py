@@ -1,14 +1,11 @@
 import sqlite3
 import os
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
 
 from .import DB_NAME
 from . import engine
 
-from src.models import Word, User
-from .reading import add_to_words
+from src.models import Word, Pending
 
 
 def create_api_table():
@@ -61,5 +58,6 @@ def get_writing_stats():
 
 def create_tables():
     Word.__table__.create(bind=engine, checkfirst=True)
+    Pending.__table__.create(bind=engine, checkfirst=True)
     create_api_table()
     create_api_records()
