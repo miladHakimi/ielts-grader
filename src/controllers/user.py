@@ -140,7 +140,7 @@ def check_can_request(func):
             message = message.message
         bot.reply_to(
             message,
-            "Your trial period is over. Please visit https://grammarlybot.ir to purchase subscription for your account."
+            "Your trial period is over. To acquire a premium membership, kindly send a message to @rezadorali."
         )
 
     return wrapper

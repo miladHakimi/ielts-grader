@@ -12,7 +12,7 @@ from src.writing import generate_topic, grade_writing, check_grammar, rewrite_wr
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 PRIVATE_GROUP_ID = os.environ.get('PRIVATE_GROUP_ID')
 DB_NAME = os.environ.get('DB_NAME')
-BOT_NAME = "GrammarlyBot"
+BOT_NAME = "IELTSBot"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 gpt_api = chatgpt.ChatGPT()
@@ -112,7 +112,11 @@ def callback_query(call):
 def send_welcome(message):
     bot.reply_to(
         message,
-        "Hi. Welcome to {}.\nPlease select from the options below. For more information please visit https://grammarlybot.ir."
+        "Welcome to {}, the Telegram bot tailored to enhance your IELTS skills! "\
+        "Our AI-powered platform is your dedicated test assistant, ensuring you "\
+        "get the most out of your IELTS preparation. With personalized support "\
+        "and expert guidance, we're here to help you excel in your IELTS journey.\n\n"
+        "To acquire a premium membership, kindly send a message to @rezadorali."
         .format(BOT_NAME),
         reply_markup=gen_menu(main_menu_buttons, True))
 
