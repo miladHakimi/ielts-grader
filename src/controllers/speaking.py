@@ -20,9 +20,9 @@ storage_client = storage.Client()
 def generate_speaking_topic(message, tele_bot, gpt_api):
     chat_gpt_request = "Suppose that you are an IELTS teacher that creates random IELTS speaking task 2 topics. Produce a random speaking topic that is formatted like a IELTS speaking topic. Start the topic with 'Topic:'"
     response = gpt_api.prompt(chat_gpt_request)
-    if 'Topic:' in response.choices[0].text:
-        response.choices[0].text = response.choices[0].text.split('Topic:')[1]
-    tele_bot.reply_to(message, response.choices[0].text)
+    if 'Topic:' in response:
+        response = response.split('Topic:')[1]
+    tele_bot.reply_to(message, response)
     increment_requests(message)
 
 
@@ -105,7 +105,7 @@ def process_speaking_step(message, bot, gpt_api):
             message,
             "Recognized text: {}\n\nGrade:{}".format(
                 transcript,
-                response.choices[0].text))
+                response))
 
 
 def generate_idea(message, bot, gpt_api):
@@ -113,7 +113,7 @@ def generate_idea(message, bot, gpt_api):
         prompt = "Suppose you are an IELTS teacher that comes up with good ideas for speaking topics. Generate an answer for the following topic that contains around 150 words. Topic: {}".format(
             message.text)
         response = gpt_api.prompt(prompt)
-        bot.reply_to(message, response.choices[0].text)
+        bot.reply_to(message, response)
 
     bot.reply_to(message, "Please send the topic.")
     bot.register_next_step_handler(
