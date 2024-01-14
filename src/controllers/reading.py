@@ -70,7 +70,7 @@ def recall_word(message, tele_bot, gpt_api):
 
         """.format(word.word)
         response = gpt_api.prompt(prompt)
-        word, sentence, options, answer, options_str = parse_vocab_response(response.choices[0].text)
+        word, sentence, options, answer, options_str = parse_vocab_response(response)
         question = sentence + "\nWhich of the following options best defines the word \"{}\"?\n{}".format(word, options_str)
         tele_bot.send_message(message.chat.id, question, reply_markup=gen_menu(gen_options_buttons(word, sentence, options, answer)))
 
@@ -108,6 +108,6 @@ def teach_word(message, tele_bot, gpt_api):
 
     """
     response = gpt_api.prompt(prompt)
-    word, sentence, options, answer, options_str = parse_vocab_response(response.choices[0].text)
+    word, sentence, options, answer, options_str = parse_vocab_response(response)
     question = sentence + "\nWhich of the following options best defines the word \"{}\"?\n{}".format(word, options_str)
     tele_bot.send_message(message.chat.id, question, reply_markup=gen_menu(gen_options_buttons(word, sentence, options, answer)))

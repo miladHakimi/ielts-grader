@@ -1,13 +1,15 @@
 import os
 
-import openai
+from openai import OpenAI
 
 
 # ChatGPT Interface
 class ChatGPT:
 
     def __init__(self):
-        openai.api_key = os.environ.get('OPENAI_API_KEY')
+        self.client = OpenAI(
+            api_key=os.environ['OPENAI_API_KEY'],
+        )
 
     # Puts the requests to the "to be processed" queue.
     def enqueue(self, req):
@@ -19,8 +21,9 @@ class ChatGPT:
 
     # Sends the request to the ChatGPT server and returns the response.
     def prompt(self, req):
-        response = openai.Completion.create(model="text-davinci-003",
-                                            prompt=req,
-                                            temperature=0.9,
-                                            max_tokens=1000)
-        return response
+        response = self.client.chat.completions.create(model="gpt-3.5-turbo",
+                                messages=[{
+                                    "role": "user",
+                                    "content": req
+                                    }])
+        return response.choices[0].message.content

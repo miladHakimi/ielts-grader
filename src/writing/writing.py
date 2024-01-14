@@ -6,9 +6,9 @@ from src.controllers import increment_requests, increment_api_count
 def generate_topic(message, tele_bot, gpt_api):
     chat_gpt_request = "Suppose that you are an IELTS teacher that creates random IELTS writing essay topics. Produce a random writing topic that is formatted like a IELTS writing topic. Start the topic with 'Topic:'"
     response = gpt_api.prompt(chat_gpt_request)
-    if 'Topic:' in response.choices[0].text:
-        response.choices[0].text = response.choices[0].text.split('Topic:')[1]
-    tele_bot.reply_to(message, response.choices[0].text)
+    if 'Topic:' in response:
+        response = response.split('Topic:')[1]
+    tele_bot.reply_to(message, response)
     increment_requests(message)
     increment_api_count("writing/Generate Topic")
 
@@ -56,7 +56,7 @@ def grade_essay(message, tele_bot, gpt_api, topic):
                     "Finally, give it a grade range base on academic ielts grading system form 0 to 9. "\
                     "The min and max in the grade range must be 1 point apart.\n{}\n{}".format(topic, m)
     response = gpt_api.prompt(chat_gpt_request)
-    tele_bot.reply_to(message, response.choices[0].text)
+    tele_bot.reply_to(message, response)
     increment_requests(message)
     increment_api_count("writing/Grade Writing")
 
@@ -73,7 +73,7 @@ def extract_grammar(message, tele_bot, gpt_api):
     tele_bot.reply_to(message,
                       "Please wait while we are processing your query.")
     response = gpt_api.prompt(chat_gpt_request)
-    tele_bot.reply_to(message, response.choices[0].text)
+    tele_bot.reply_to(message, response)
     increment_requests(message)
     increment_api_count("writing/Check Grammar")
 
@@ -89,7 +89,7 @@ def rewrite(message, tele_bot, gpt_api):
     tele_bot.reply_to(message,
                       "Please wait while we are processing your query.")
     response = gpt_api.prompt(chat_gpt_request)
-    tele_bot.reply_to(message, response.choices[0].text)
+    tele_bot.reply_to(message, response)
     increment_requests(message)
     increment_api_count("writing/Rewrite Writing")
 
@@ -102,7 +102,7 @@ def write_essay(message, tele_bot, gpt_api):
         tele_bot.reply_to(message,
                           "Please wait while we are processing your query.")
         response = gpt_api.prompt(chat_gpt_request)
-        tele_bot.reply_to(message, response.choices[0].text)
+        tele_bot.reply_to(message, response)
         increment_requests(message)
         increment_api_count("writing/Write Essay")
 
