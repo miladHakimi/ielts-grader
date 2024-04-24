@@ -5,7 +5,7 @@ import telebot
 from src.gpt import chatgpt
 from src.admin.admin import admin_buttons, extend_user, user_stats, api_stats
 from src.controllers import get_or_create_user, create_tables, generate_speaking_topic, grade_speaking, generate_idea, teach_word, check_response, check_can_request, recall_word
-from src.utility import main_menu_buttons, writing_buttons, speaking_buttons, gen_menu, reading_buttons
+from src.utility import main_menu_buttons, writing_buttons, speaking_buttons, gen_menu, reading_buttons, CustomExceptionHandler
 from src.writing import generate_topic, grade_writing, check_grammar, rewrite_writing, write_essay
 
 
@@ -15,6 +15,8 @@ DB_NAME = os.environ.get('DB_NAME')
 BOT_NAME = "IELTSBot"
 
 bot = telebot.TeleBot(BOT_TOKEN)
+bot.exception_handler = CustomExceptionHandler(bot, PRIVATE_GROUP_ID)
+
 gpt_api = chatgpt.ChatGPT()
 
 
