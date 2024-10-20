@@ -2,8 +2,8 @@ import os
 
 import telebot
 
-from src.gpt import chatgpt
-from src.admin.admin import admin_buttons, extend_user, user_stats, api_stats
+from src.gpt import chatgpt, CerebrasGPT
+from src.admin.admin import admin_buttons, extend_user, user_stats, api_stats, feedback_handler
 from src.controllers import get_or_create_user, create_tables, generate_speaking_topic, grade_speaking, generate_idea, teach_word, check_response, check_can_request, recall_word
 from src.utility import main_menu_buttons, writing_buttons, speaking_buttons, gen_menu, reading_buttons, CustomExceptionHandler
 from src.writing import generate_topic, grade_writing, check_grammar, rewrite_writing, write_essay
@@ -17,7 +17,7 @@ BOT_NAME = "IELTSBot"
 bot = telebot.TeleBot(BOT_TOKEN)
 bot.exception_handler = CustomExceptionHandler(bot, PRIVATE_GROUP_ID)
 
-gpt_api = chatgpt.ChatGPT()
+gpt_api = CerebrasGPT()
 
 
 def reading_handler(call):
@@ -106,6 +106,8 @@ def callback_query(call):
         return reading_handler(call)
     if "/admin" in call.data:
         return admin_handler(call)
+    if "/feedback" in call.data:
+        return feedback_handler(call.message, bot)
 
 
 @bot.message_handler(commands=['start', 'hello'],
@@ -114,11 +116,10 @@ def callback_query(call):
 def send_welcome(message):
     bot.reply_to(
         message,
-        "Welcome to {}, the Telegram bot tailored to enhance your IELTS skills! "\
-        "Our AI-powered platform is your dedicated test assistant, ensuring you "\
-        "get the most out of your IELTS preparation. With personalized support "\
-        "and expert guidance, we're here to help you excel in your IELTS journey.\n\n"
-        "To acquire a premium membership, kindly send a message to @rezadorali."
+        "Welcome to {}, the AI-powered Telegram bot designed to boost \
+        your IELTS skills! Get expert guidance and personalized support \
+        to excel in your IELTS journey. For premium membership, message \
+        @rezadorali."
         .format(BOT_NAME),
         reply_markup=gen_menu(main_menu_buttons, True))
 
@@ -146,5 +147,6 @@ def echo_all(message):
 
 if __name__ == '__main__':
     create_tables()
-    bot.register_callback_query_handler(check_response, func=lambda call: "reading/vocab/" in call.data, pass_bot=True)
+    bot.register_callback_query_handler(
+        check_response, func=lambda call: "reading/vocab/" in call.data, pass_bot=True)
     bot.infinity_polling()

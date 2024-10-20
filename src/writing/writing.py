@@ -1,5 +1,4 @@
 import re
-
 from src.controllers import increment_requests, increment_api_count
 
 
@@ -15,11 +14,11 @@ def generate_topic(message, tele_bot, gpt_api):
 
 def grade_writing(message, tele_bot, gpt_api):
     tele_bot.reply_to(message, "Please send the topic.")
-    tele_bot.register_next_step_handler(message, recieve_topic, tele_bot,
+    tele_bot.register_next_step_handler(message, receive_topic, tele_bot,
                                         gpt_api)
 
 
-def recieve_topic(message, tele_bot, gpt_api):
+def receive_topic(message, tele_bot, gpt_api):
     tele_bot.reply_to(message, "Please send your essay.")
     tele_bot.register_next_step_handler(message, grade_essay, tele_bot,
                                         gpt_api, "Topic: " + message.text)
