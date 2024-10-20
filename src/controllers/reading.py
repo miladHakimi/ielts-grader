@@ -103,22 +103,23 @@ def check_response(call, bot):
 
 def teach_word(message, tele_bot, gpt_api):
     tele_bot.send_chat_action(chat_id=message.chat.id, action="typing")
+
     prompt = """
     You're an IELTS exam question generator. Generate an IELTS-like vocabulary question in the following format but with a different word. Note that  1) The meaning of the word must not be inferrable from its neighbour words in the sentence. 2) The options must not be easy to cross out. 3) Put the answer at the end. Here is the sample:
 
-    Word: Quixotic
+    Word: Acclaim
 
-    Sentence: "Despite facing numerous obstacles, he pursued his quixotic dream of creating a utopian society."
+    Sentence: "The scientist’s groundbreaking discovery was met with universal acclaim."
 
     Options:
 
-    A) Practical
-    B) Realistic
-    C) Idealistic
-    D) Cynical
+    A) Criticism
+    B) Applause
+    C) Rejection
+    D) Doubt
 
     Answer:
-    C
+    B
 
     """
     response = gpt_api.prompt(prompt)

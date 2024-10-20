@@ -27,6 +27,8 @@ class CerebrasGPT(ChatGPT):
                     "content": req,
                 }
             ],
-            model="llama3.1-8b",
+            model="llama3.1-70b",
+            temperature=1
         )
+        print("req:", req)
         return completion.choices[0].message.content

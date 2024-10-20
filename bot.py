@@ -17,7 +17,7 @@ BOT_NAME = "IELTSBot"
 bot = telebot.TeleBot(BOT_TOKEN)
 bot.exception_handler = CustomExceptionHandler(bot, PRIVATE_GROUP_ID)
 
-gpt_api = CerebrasGPT()
+gpt_api = chatgpt.ChatGPT()
 
 
 def reading_handler(call):
