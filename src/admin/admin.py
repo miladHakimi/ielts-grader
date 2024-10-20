@@ -1,7 +1,12 @@
 import datetime
+import os
 
 from src.utility import KeyboardButton
 from src.controllers import extend_account, count_joined_users, count_requests, get_writing_stats
+
+
+PRIVATE_GROUP_ID = os.environ.get('PRIVATE_GROUP_ID')
+
 
 admin_buttons = [
     KeyboardButton("Extend user 👩‍💻", "/admin/extend_user",
@@ -32,7 +37,8 @@ def user_stats(message, tele_bot):
     today_count = count_joined_users(from_date=start_of_today)
     total_count = count_joined_users()
     total_requests = count_requests()
-    tele_bot.reply_to(message, "Today's joined users: {}\nTotal joined users: {}\nTotal Requests: {}".format(today_count, total_count, total_requests))
+    tele_bot.reply_to(message, "Today's joined users: {}\nTotal joined users: {}\nTotal Requests: {}".format(
+        today_count, total_count, total_requests))
 
 
 def api_stats(message, tele_bot):
@@ -42,3 +48,14 @@ def api_stats(message, tele_bot):
     for i in writing_stats:
         result += "{}: {}\n".format(i[1].split("/")[1], i[2])
     tele_bot.reply_to(message, result)
+
+
+def feedback_handler(message, tele_bot):
+    def send_feedback(message):
+        tele_bot.reply_to(
+            message, "Thank you for your feedback. We will process it ASAP!")
+        tele_bot.send_message(int(
+            PRIVATE_GROUP_ID), f"Feedback from {message.from_user.id} (@{ message.from_user.username})\n: {message.text}")
+
+    tele_bot.reply_to(message, "Please send your feedback.")
+    tele_bot.register_next_step_handler(message, send_feedback)

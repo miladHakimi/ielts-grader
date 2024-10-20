@@ -48,7 +48,9 @@ default_menu_buttons = [
 main_menu_buttons = [
     KeyboardButton("Reading 📚", "/reading", {"en": "Reading menue."}),
     KeyboardButton("Speaking 🗣️", "/speaking", {"en": "Speaking menue."}),
-    KeyboardButton("Writing 📝", "/writing", {"en": "Writing menu."})
+    KeyboardButton("Writing 📝", "/writing", {"en": "Writing menu."}),
+    KeyboardButton("Feedback", "/feedback", {"en": ""}),
+    
 ]
 
 writing_buttons = [
