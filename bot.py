@@ -2,9 +2,9 @@ import os
 
 import telebot
 
-from src.gpt import chatgpt, CerebrasGPT
+from src.gpt import chatgpt
 from src.admin.admin import admin_buttons, extend_user, user_stats, api_stats, feedback_handler
-from src.controllers import get_or_create_user, create_tables, generate_speaking_topic, grade_speaking, generate_idea, teach_word, check_response, check_can_request, recall_word
+from src.controllers import get_or_create_user, create_tables, generate_speaking_topic, grade_speaking, generate_idea, complete_word, check_response, check_can_request, check_real_or_fake
 from src.utility import main_menu_buttons, writing_buttons, speaking_buttons, gen_menu, reading_buttons, CustomExceptionHandler
 from src.writing import generate_topic, grade_writing, check_grammar, rewrite_writing, write_essay
 
@@ -29,10 +29,10 @@ def reading_handler(call):
             call.message.chat.id,
             call.message.message_id,
             reply_markup=gen_menu(reading_buttons))
-    elif data[1] == "vocab":
-        teach_word(call.message, bot, gpt_api)
-    elif data[1] == "recall":
-        recall_word(call.message, bot, gpt_api)
+    elif data[1] == "complete":
+        complete_word(call.message, bot, gpt_api)
+    elif data[1] == "real_or_fake":
+        check_real_or_fake(call.message, bot, gpt_api)
 
 
 def writing_handler(call):
@@ -98,10 +98,6 @@ def callback_query(call):
                               call.message.chat.id,
                               call.message.message_id,
                               reply_markup=gen_menu(main_menu_buttons, True))
-    if "/writing" in call.data:
-        return writing_handler(call)
-    if "/speaking" in call.data:
-        return speaking_handler(call)
     if "/reading" in call.data:
         return reading_handler(call)
     if "/admin" in call.data:
@@ -116,11 +112,7 @@ def callback_query(call):
 def send_welcome(message):
     bot.reply_to(
         message,
-        "Welcome to {}, the AI-powered Telegram bot designed to boost \
-        your IELTS skills! Get expert guidance and personalized support \
-        to excel in your IELTS journey. For premium membership, message \
-        @rezadorali."
-        .format(BOT_NAME),
+        "Welcome!\n",
         reply_markup=gen_menu(main_menu_buttons, True))
 
 

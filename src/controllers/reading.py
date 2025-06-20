@@ -7,20 +7,27 @@ from . import engine
 from src.utility import gen_menu, gen_options_buttons, reading_buttons
 from src.models import User, Word
 from src.controllers import increment_requests
+from src.gpt import chatgpt
+
+
+gpt_api = chatgpt.ChatGPT()
 
 
 def parse_vocab_response(response):
-    word = response.split('Word:')[1].split('Sentence:')[0].strip()
-    sentence = response.split('Sentence:')[1].split('Options:')[0].strip()
-    options_str = response.split('Options:')[1].split('Answer:')[0].strip()
-    options = {}
-    for option in options_str.split('\n'):
-        option = option.strip()
-        if not len(option):
-            continue
-        options[option[0]] = option[3:]
+    word = response.split('Word:')[1].split('question:')[0].strip()
+    question = response.split('Question:')[1].split('Answer:')[0].strip()
     answer = response.split('Answer:')[1].strip()
-    return word, sentence, options, answer, options_str
+    return word, question, answer
+
+
+def parse_read_or_fake_response(response):
+    response = response.lower()
+    word = response.split('word:')[1].split('is_real:')[0].strip()
+    if 'use_case:' not in response:
+        return word, 'false', ''
+    is_real = response.split('is_real:')[1].split('use_case:')[0].strip()
+    use_case = response.split('use_case:')[1].strip()
+    return word, is_real, use_case
 
 
 def add_to_words(user_id, word, correct=False):
@@ -42,91 +49,95 @@ def add_to_words(user_id, word, correct=False):
         session.commit()
 
 
-def recall_word(message, tele_bot, gpt_api):
-    """ Takes one of the user's current words from database and asks the user to recall its meaning. """
-    user_id = message.chat.id
-    with Session(engine) as session:
-        statement = select(User).where(User.id == user_id)
-        user = session.execute(statement).scalar()
-        if not user:
-            tele_bot.send_message(
-                message.chat.id, "You have not started using the bot yet. Please start using the bot by clicking /start.")
-            return
-        statement = select(Word).where(
-            Word.user_id == user_id).order_by(Word.last_used).limit(1)
-        word = session.execute(statement).scalar()
-        if not word:
-            tele_bot.send_message(
-                message.chat.id, "You don't have any words to recall.")
-            return
-        prompt = """
-        You're an IELTS exam question generator. Generate an IELTS-like vocabulary question in the following format but with the word {}. Note that  1) The meaning of the word must not be inferrable from its neighbour words in the sentence. 2) The options must not be easy to cross out. 3) Put the answer at the end. Here is the sample:
+def check_real_or_fake(message, tele_bot, gpt_api):
+    word_list = [
+            "important", "opportunity", "experience", "different", "education", "information", "understand", "language", "culture", "knowledge",
+            "improve", "communication", "ability", "question", "problem", "answer", "example", "reason", "result", "situation",
+            "decide", "develop", "explain", "learn", "teach", "believe", "consider", "support", "create", "describe",
+            "compare", "choose", "increase", "reduce", "depend", "prefer", "discuss", "suggest", "follow", "continue",
+            "community", "environment", "technology", "subject", "topic", "opinion", "idea", "issue", "change", "goal",
+            "plan", "solution", "success", "challenge", "skill", "habit", "behavior", "activity", "program", "method",
+            "student", "teacher", "school", "university", "test", "score", "study", "homework", "class", "project",
+            "research", "book", "article", "internet", "video", "media", "news", "message", "system", "device",
+            "early", "late", "always", "usually", "sometimes", "rarely", "never", "quickly", "slowly", "carefully",
+            "clearly", "exactly", "actually", "especially", "finally", "mostly", "recently", "already", "just", "still",
+            "time", "day", "week", "month", "year", "hour", "minute", "second", "today", "tomorrow",
+            "yesterday", "morning", "afternoon", "evening", "night", "breakfast", "lunch", "dinner", "meal", "snack",
+            "water", "coffee", "tea", "milk", "juice", "fruit", "vegetable", "apple", "banana", "orange",
+            "bread", "rice", "egg", "meat", "chicken", "fish", "soup", "salad", "butter", "cheese",
+            "family", "friend", "parent", "child", "father", "mother", "brother", "sister", "son", "daughter",
+            "people", "person", "man", "woman", "boy", "girl", "baby", "neighbor", "group", "team",
+            "city", "town", "village", "country", "capital", "street", "road", "building", "house", "apartment",
+            "room", "kitchen", "bathroom", "bedroom", "living", "window", "door", "floor", "ceiling", "wall",
+            "car", "bus", "train", "plane", "bicycle", "motorcycle", "vehicle", "travel", "trip", "vacation",
+            "ticket", "station", "airport", "hotel", "map", "guide", "bag", "luggage", "passport", "camera",
+            "work", "job", "employee", "employer", "office", "company", "manager", "meeting", "task", "schedule",
+            "money", "price", "cost", "salary", "bill", "cash", "card", "bank", "account", "market",
+            "store", "shop", "product", "item", "sale", "customer", "service", "order", "receipt", "discount"
+        ]
 
-        Word: Quixotic
-
-        Sentence: "Despite facing numerous obstacles, he pursued his quixotic dream of creating a utopian society."
-
-        Options:
-
-        A) Practical
-        B) Realistic
-        C) Idealistic
-        D) Cynical
-
-        Answer:
-        C
-
-        """.format(word.word)
-        response = gpt_api.prompt(prompt)
-        word, sentence, options, answer, options_str = parse_vocab_response(
-            response)
-        question = sentence + \
-            "\nWhich of the following options best defines the word \"{}\"?\n{}".format(
-                word, options_str)
-        tele_bot.send_message(message.chat.id, question, reply_markup=gen_menu(
-            gen_options_buttons(word, sentence, options, answer)))
+    
+    # Pick a random word from the list
+    import random
+    word = random.choice(word_list)
+    is_real = 'is_real'
+    example = ""
+    # Decide if you're going to change the word or not
+    if random.choice([True, False]):
+        # If yes, swap some of the letters in the word
+        word = list(word)
+        indices = random.sample(range(len(word)), k=random.randint(1, 3))
+        for i in indices:
+            word[i] = random.choice('abcdefghilmnorstu' + ''.join(word))
+        word = ''.join(word)
+        is_real = 'is_fake'
+    
+    question = "Is the word '{}' real or fake?\n\n".format(word)
+    tele_bot.send_message(message.chat.id, question, 
+                          reply_markup=gen_menu(gen_options_buttons(word=word, question="",
+                                                                   options={"Real": "is_real", "Fake": "is_fake"},
+                                                                   asnwer=is_real)))
 
 
 def check_response(call, bot):
     word = call.data.split("/")[3]
-    response = call.data.split("/")[4]
-    answer = call.data.split('/')[-1]
+    response = call.data.split("/")[4].strip().lower()
+    answer = call.data.split('/')[-1].strip().lower()
     result = call.message.text
-    result += "\n\nCorrect!" if response == answer else "\n\nIncorrect!".format(
+    example = ""
+    print(answer)
+    result += "\n\nCorrect! " if response.strip().lower() == answer.strip().lower() else "\n\nIncorrect! ".format(
         answer)
-    add_to_words(call.message.chat.id, word, response == answer)
-    result += " The answer is {}.".format(answer)
+    is_real = True if 'real' in answer else False
+    answer = "is real" if is_real else "is fake"
+    if is_real:
+        prompt = "Use the word '{}' in a sentence. Start your answer with the word \"Example:\".".format(word)
+        response = gpt_api.prompt(prompt)
+        response = response.strip().lower()
+        example = response
+    result += "\n{} {}\n\n{}\n\n".format(word, answer, example)
     bot.edit_message_text(result, call.message.chat.id, call.message.message_id,
                           result, reply_markup=gen_menu(reading_buttons))
-    increment_requests(call.message)
 
 
-def teach_word(message, tele_bot, gpt_api):
+def complete_word(message, tele_bot, gpt_api):
     tele_bot.send_chat_action(chat_id=message.chat.id, action="typing")
 
     prompt = """
-    You're an IELTS exam question generator. Generate an IELTS-like vocabulary question in the following format but with a different word. Note that  1) The meaning of the word must not be inferrable from its neighbour words in the sentence. 2) The options must not be easy to cross out. 3) Put the answer at the end. Here is the sample:
+    Create a "Read and Complete" question similar to the Duolingo English Test. Provide a short English passage (1-2 sentences) with 1 word that is partially blanked out by removing 1–3 letters per word. Make the sentence grammatically correct when completed. Also, include the full correct version of the word as the answer key.
+    write the answer at the end. Here is a sample output:
 
-    Word: Acclaim
+    Word: 
+    competition
 
-    Sentence: "The scientist’s groundbreaking discovery was met with universal acclaim."
-
-    Options:
-
-    A) Criticism
-    B) Applause
-    C) Rejection
-    D) Doubt
+    Question:
+    The students were eager to participate in the comp _ _ ition.
 
     Answer:
-    B
-
+    et
     """
     response = gpt_api.prompt(prompt)
-    word, sentence, options, answer, options_str = parse_vocab_response(
+    word, question, answer = parse_vocab_response(
         response)
-    question = sentence + \
-        "\nWhich of the following options best defines the word \"{}\"?\n{}".format(
-            word, options_str)
-    tele_bot.send_message(message.chat.id, question, reply_markup=gen_menu(
-        gen_options_buttons(word, sentence, options, answer)))
+    question = "Complete the missing word in the following sentence.\n{}\n".format(question)
+    tele_bot.send_message(message.chat.id, question,)

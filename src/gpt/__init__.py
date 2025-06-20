@@ -1,2 +1,2 @@
 from .chatgpt import ChatGPT
-from .cerebras import CerebrasGPT
+# from .cerebras import CerebrasGPT

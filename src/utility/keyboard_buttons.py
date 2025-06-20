@@ -36,7 +36,7 @@ def gen_menu(menu_buttons, is_home=False):
 def gen_options_buttons(word, question, options, asnwer):
     option_buttons = []
     for option in options:
-        option_buttons.append(KeyboardButton("{}) {}".format(option, options[option]), "/reading/vocab/{}/{}/{}".format(word, option, asnwer),
+        option_buttons.append(KeyboardButton("{} ".format(option), "/reading/vocab/{}/{}/{}".format(word, options[option], asnwer),
                                              {"en": ""}))
     return option_buttons
 
@@ -47,10 +47,6 @@ default_menu_buttons = [
 
 main_menu_buttons = [
     KeyboardButton("Reading 📚", "/reading", {"en": "Reading menue."}),
-    KeyboardButton("Speaking 🗣️", "/speaking", {"en": "Speaking menue."}),
-    KeyboardButton("Writing 📝", "/writing", {"en": "Writing menu."}),
-    KeyboardButton("Feedback", "/feedback", {"en": ""}),
-    
 ]
 
 writing_buttons = [
@@ -76,8 +72,8 @@ speaking_buttons = [
 ]
 
 reading_buttons = [
-    KeyboardButton("Teach me a new word! 👩‍🎓", "/reading/vocab",
-                   {"en": "Teaches you a random word."}),
-    KeyboardButton("Show me a familliar word! 🧠", "/reading/recall",
-                   {"en": "Shows a previously visited word."}),
+    KeyboardButton(" Read and Complete!", "/reading/complete",
+                   {"en": ""}),
+    KeyboardButton("Real or Fake!", "/reading/real_or_fake",
+                   {"en": ""}),
 ]

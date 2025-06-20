@@ -21,9 +21,10 @@ class ChatGPT:
 
     # Sends the request to the ChatGPT server and returns the response.
     def prompt(self, req):
-        response = self.client.chat.completions.create(model="gpt-3.5-turbo",
+        response = self.client.chat.completions.create(model="gpt-4o-2024-08-06",
                                 messages=[{
                                     "role": "user",
                                     "content": req
-                                    }])
+                                    }],
+                                    temperature=0.6,)
         return response.choices[0].message.content
