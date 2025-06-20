@@ -106,7 +106,7 @@ def check_response(call, bot):
     result = call.message.text
     example = ""
     print(answer)
-    result += "\n\nCorrect! " if response.strip().lower() == answer.strip().lower() else "\n\nIncorrect! ".format(
+    result += "\n✅ Correct! " if response.strip().lower() == answer.strip().lower() else "\n\n❌ Incorrect! ".format(
         answer)
     is_real = True if 'real' in answer else False
     answer = "is real" if is_real else "is fake"
@@ -122,22 +122,78 @@ def check_response(call, bot):
 
 def complete_word(message, tele_bot, gpt_api):
     tele_bot.send_chat_action(chat_id=message.chat.id, action="typing")
+    word_list = [
+            "important", "opportunity", "experience", "different", "education", "information", "understand", "language", "culture", "knowledge",
+            "improve", "communication", "ability", "question", "problem", "answer", "example", "reason", "result", "situation",
+            "decide", "develop", "explain", "learn", "teach", "believe", "consider", "support", "create", "describe",
+            "compare", "choose", "increase", "reduce", "depend", "prefer", "discuss", "suggest", "follow", "continue",
+            "community", "environment", "technology", "subject", "topic", "opinion", "idea", "issue", "change", "goal",
+            "plan", "solution", "success", "challenge", "skill", "habit", "behavior", "activity", "program", "method",
+            "student", "teacher", "school", "university", "test", "score", "study", "homework", "class", "project",
+            "research", "book", "article", "internet", "video", "media", "news", "message", "system", "device",
+            "early", "late", "always", "usually", "sometimes", "rarely", "never", "quickly", "slowly", "carefully",
+            "clearly", "exactly", "actually", "especially", "finally", "mostly", "recently", "already", "just", "still",
+            "time", "day", "week", "month", "year", "hour", "minute", "second", "today", "tomorrow",
+            "yesterday", "morning", "afternoon", "evening", "night", "breakfast", "lunch", "dinner", "meal", "snack",
+            "water", "coffee", "tea", "milk", "juice", "fruit", "vegetable", "apple", "banana", "orange",
+            "bread", "rice", "egg", "meat", "chicken", "fish", "soup", "salad", "butter", "cheese",
+            "family", "friend", "parent", "child", "father", "mother", "brother", "sister", "son", "daughter",
+            "people", "person", "man", "woman", "boy", "girl", "baby", "neighbor", "group", "team",
+            "city", "town", "village", "country", "capital", "street", "road", "building", "house", "apartment",
+            "room", "kitchen", "bathroom", "bedroom", "living", "window", "door", "floor", "ceiling", "wall",
+            "car", "bus", "train", "plane", "bicycle", "motorcycle", "vehicle", "travel", "trip", "vacation",
+            "ticket", "station", "airport", "hotel", "map", "guide", "bag", "luggage", "passport", "camera",
+            "work", "job", "employee", "employer", "office", "company", "manager", "meeting", "task", "schedule",
+            "money", "price", "cost", "salary", "bill", "cash", "card", "bank", "account", "market",
+            "store", "shop", "product", "item", "sale", "customer", "service", "order", "receipt", "discount"
+    ]
 
-    prompt = """
-    Create a "Read and Complete" question similar to the Duolingo English Test. Provide a short English passage (1-2 sentences) with 1 word that is partially blanked out by removing 1–3 letters per word. Make the sentence grammatically correct when completed. Also, include the full correct version of the word as the answer key.
-    write the answer at the end. Here is a sample output:
+    # Pick a random word from the list
+    import random
+    word = random.choice(word_list)
+    # Decide how many letters to remove and starting index
+    num_letters_to_remove = random.randint(1, 3)
+    start_index = random.randint(0, len(word) - num_letters_to_remove)
+    # Create the question by removing letters
+    blanked = word[:start_index] + '-' * num_letters_to_remove + word[start_index + num_letters_to_remove:]
+    answer = word[start_index:start_index + num_letters_to_remove]
 
-    Word: 
-    competition
-
-    Question:
-    The students were eager to participate in the comp _ _ ition.
-
-    Answer:
-    et
-    """
+    prompt = f" Use the word '{word}' in a sentence."
     response = gpt_api.prompt(prompt)
-    word, question, answer = parse_vocab_response(
-        response)
+    response = response.strip()
+    # Replace the word in the response with the blanked
+    question = response.replace(word, blanked)
+
     question = "Complete the missing word in the following sentence.\n{}\n".format(question)
     tele_bot.send_message(message.chat.id, question,)
+    tele_bot.register_next_step_handler(message, check_completed_word, tele_bot,
+                                        blanked, answer)
+
+def check_completed_word(message, tele_bot, blanked, answer):
+    """ Checks the completed word by the user. """
+    answer = answer.strip().lower()
+    
+    fill_iter = iter(answer)
+    word = []
+    for char in blanked:
+        if char == '-':
+            word.append(next(fill_iter))
+        else:
+            word.append(char)
+    
+    word = ''.join(word)
+
+    tele_bot.send_chat_action(chat_id=message.chat.id, action="typing")
+    response = message.text.strip().lower()
+    if not response:
+        tele_bot.reply_to(message, "Please provide an answer.")
+        return
+
+    # Check if the response is correct
+    if response == answer or response == word:
+        result = "✅ Correct! The word is: {}".format(word)
+    else:
+        result = "❌ Incorrect! The correct word was: {}".format(word)
+
+    tele_bot.send_message(message.chat.id, result,
+                          reply_markup=gen_menu(reading_buttons))
